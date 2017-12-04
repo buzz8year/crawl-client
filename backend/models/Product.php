@@ -87,7 +87,9 @@ class Product extends \yii\db\ActiveRecord
 
     public function getTopCategory()
     {   
-        return Category::findOne($this->topCategorySource->category_id);
+        if (isset($this->topCategorySource)) {
+            return Category::findOne($this->topCategorySource->category_id);
+        }
     }
 
     public function getCategorySource()
@@ -97,14 +99,14 @@ class Product extends \yii\db\ActiveRecord
 
     public function getTopCategorySource()
     {   
-        if ($this->categorySource->self_parent_id) {
+        if (isset($this->categorySource) && $this->categorySource->self_parent_id) {
             return $this->findTopCategorySource($this->categorySource);
         }
     }
 
     public function findTopCategorySource($categorySource)
     {   
-        if ($categorySource->self_parent_id) {
+        if (isset($categorySource->self_parent_id)) {
             $parent = CategorySource::findOne($categorySource->self_parent_id);
             if ($parent->self_parent_id) {
                 return $this->findTopCategorySource($parent);
