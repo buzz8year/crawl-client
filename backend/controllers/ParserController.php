@@ -11,6 +11,7 @@ use backend\models\parser\Parser;
 use backend\models\parser\ParserProvisioner;
 use backend\models\parser\ParserSettler;
 use backend\models\Product;
+use backend\models\Source;
 use Yii;
 use yii\web\Controller;
 
@@ -93,10 +94,11 @@ class ParserController extends Controller
         $cachedTree = Yii::$app->cache->get('categoryTreeId=' . $model->id);
 
         // TREE: Cached or build and then cache
+        $sourceCategories = [];
         if ($cachedTree === false && $rawCategories) {
             $sourceCategories = ParserProvisioner::buildTree($rawCategories);
             Yii::$app->cache->set('categoryTreeId=' . $model->id, $sourceCategories);
-        } else {
+        } elseif ($cachedTree) {
             $sourceCategories = $cachedTree;
         }
 
@@ -108,7 +110,7 @@ class ParserController extends Controller
 
         // KEYWORD: Process keyword created on the fly
         if ($flyKeyword = Yii::$app->request->post('flyKeyword')) {
-            $flyKeyword = $this->processKeyword($id, $flyKeyword);
+            $flyKeyword = $this->processKeyword($id, $flyKeyword, 1);
             return Yii::$app->getResponse()->redirect(['parser/trial', 'id' => $id, 'reg' => $reg, 'cat' => $cat, 'word' => $flyKeyword]);
         }
 
@@ -118,13 +120,19 @@ class ParserController extends Controller
         }
 
 
-
+        // PARSE: Products' details
         $detailsParsed = 0;
 
-        // PARSE: Products' details
         if ($urlProducts = json_decode(Yii::$app->request->post('parseDetails'), true)) {
             $parser->parseDetails($urlProducts);
             $detailsParsed = count($urlProducts);
+        }
+
+        // SYNC: Products
+        $syncData = [];
+
+        if (Yii::$app->request->post('syncGoods')) {
+            $syncData = $parser->syncProducts();
         }
 
         return $this->render('trial', [
@@ -133,6 +141,7 @@ class ParserController extends Controller
             'sourceCategories' => $sourceCategories,
             'sourceKeywords'   => $sourceKeywords,
             'detailsParsed'    => $detailsParsed,
+            'syncData'    => $syncData,
         ]);
     }
 
@@ -168,6 +177,7 @@ class ParserController extends Controller
 
             $settler = new ParserSettler($id);
 
+
             if (Yii::$app->request->post('parseTree')) {
                 $parsedCategories = $parser->parseCategories();
                 if ($parsedCategories) {
@@ -182,6 +192,8 @@ class ParserController extends Controller
                 Yii::$app->cache->delete('categoryTreeId=' . $model->id);
                 return Yii::$app->getResponse()->redirect(['parser/tree', 'id' => $id]);
             }
+
+
 
         }
 
@@ -202,7 +214,7 @@ class ParserController extends Controller
      * @param string $word - keyword
      * @return function
      */
-    public function processKeyword(int $id, string $word)
+    public function processKeyword(int $id, string $word, int $global = 0)
     {
         $findWord = Keyword::find()->where(['word' => $word])->one();
         if ($findWord) {
@@ -218,10 +230,21 @@ class ParserController extends Controller
             $newKeyword->word = $word;
             $newKeyword->save();
 
-            $keywordSource = new KeywordSource();
-            $keywordSource->keyword_id = $newKeyword->id;
-            $keywordSource->source_id = $id;
-            $keywordSource->save();
+            // GLOBAL: Assign keyword globally, to all sources, or specifically to current one
+            if ($global) {
+                foreach (Source::find()->all() as $source) {
+                    $keywordSource = new KeywordSource();
+                    $keywordSource->keyword_id = $newKeyword->id;
+                    $keywordSource->source_id = $source->id;
+                    $keywordSource->save();
+                }
+
+            } else {
+                $keywordSource = new KeywordSource();
+                $keywordSource->keyword_id = $newKeyword->id;
+                $keywordSource->source_id = $id;
+                $keywordSource->save();
+            }
         }
 
         $keyword = Keyword::findOne($keywordSource->keyword_id)->word;

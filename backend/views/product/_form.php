@@ -61,12 +61,7 @@ use backend\models\Source;
                     echo '<strong>' . $attribute['title'] . '</strong>: ' . $attribute['value'] . '<br>';
                 } ?>
             </div><br><br><br><br>
-
-
-
-
-
-
+x
 
 
             <div class="form-group">
@@ -80,7 +75,11 @@ use backend\models\Source;
             <?= $form->field($model, 'source_id')->dropDownList( Source::listSources() ) ?>
             <?//= $form->field($model, 'keyword_id')->textInput() ?>
             <?= Html::activeLabel($model, 'keyword_id') ?>
-            <?= Html::textInput('keyword', Keyword::findOne($model->keyword_id)->word, ['class' => 'form-control', 'readonly' => true]) ?>
+            <?php
+            if ($keyword = Keyword::findOne($model->keyword_id)) {
+                echo Html::textInput('keyword', $keyword->word, ['class' => 'form-control', 'readonly' => true]);
+            }
+            ?>
             <?php foreach ($model->descriptions as $description) {
                 echo '<strong>' . $description['title'] . '</strong>' . '<br>';
                 echo $description['text_original'] . '<br><br>';

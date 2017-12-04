@@ -38,7 +38,7 @@ echo Breadcrumbs::widget([
 	<div class="col-lg-12">
 
 		<div class="form-group">
-			<button data-toggle="collapse" data-target="#tree" class="btn btn-primary pull-right">Current Categories</button>
+			<button data-toggle="collapse" data-target="#tree" class="btn btn-primary pull-right">Текущие категории</button>
 
 			<?php ActiveForm::begin();?>
 				<?= Html::submitButton('Parse Categories', ['class' => 'btn btn-success', 'name' => 'parseTree', 'value' => 1]) ?>

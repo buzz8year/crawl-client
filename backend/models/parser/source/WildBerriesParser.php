@@ -47,9 +47,9 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
                         $data[] = $tree;
                     }
 
-                    if ($key > 2) {
-                        break;
-                    }
+                    // if ($key > 2) {
+                    //     break;
+                    // }
                 }
             }
         }

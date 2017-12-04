@@ -173,6 +173,7 @@ select.form-control {
 }
 .category-tree-row.expanded {
     max-height: 3000px;
+    /*background: rgba(0,0,50,.03);*/
 }
 .category-tree-select {
     cursor: pointer;

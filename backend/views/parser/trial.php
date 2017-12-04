@@ -3,6 +3,9 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use backend\models\parser\ParserProvisioner;
+use backend\models\Source;
+use backend\models\CategorySource;
+use backend\models\opencart\OcSettler;
 use yii\widgets\Breadcrumbs;
 
 \app\assets\ParserTrialAsset::register($this);
@@ -14,6 +17,8 @@ echo Breadcrumbs::widget([
     'homeLink' => ['label' => 'Парсинг', 'url' => 'index.php'],
     'links' => isset($this->params['newcrumbs']) ? $this->params['newcrumbs'] : [],
 ]);
+
+// OcSettler::saveProducts();
 
 ?>
 
@@ -48,23 +53,47 @@ echo Breadcrumbs::widget([
                 </small><br/>
             </div><br/><br/><br/><br/>
 
-            <div class="form-group">
-                <?= Html::submitButton('Parse Goods', ['class' => 'btn btn-success', 'name' => 'parseGoods', 'value' => 1]) ?>
+            <div class="form-group pull-left text-muted">
+                <?= Html::submitButton('Parse Goods', ['class' => 'btn btn-success', 'name' => 'parseGoods', 'value' => 1]) ?><br/><br/>
+                <small>Ограничение хождения по страницам товаров: 2</small><br/>
+                <small>Количество страниц каталога с товарами: 10</small>
+            </div>
+
+            <div class="form-group pull-right text-right text-muted">
+                <?= Html::submitButton(
+                        'Выгрузить в магазин', 
+                        [
+                            'class' => 'btn btn-primary', 
+                            'name' => 'syncGoods', 
+                            'value' => 1, 
+                            'disabled' => (bool)count($model->products),
+                            'title' => (bool)count($model->products) ? 'У вас есть результаты парсинга, которые ожидают команды к детализации' : '',
+                        ]
+                    ) 
+                ?><br/><br/>
+                <?php if ($syncData) : ?>
+                    <small>Обработано: <?= $syncData['processed'] ?>, Синхронизировано: <?= $syncData['synced'] ?></small><br/>
+                <?php else: ?>
+                    <small>Товаров: <?= count(Source::findOne($model->id)->products) ?></small><br/>
+                <?php endif; ?>
             </div>
 
             <div class="row">
                 <?php if (isset($model->products)) : ?>
                     <br/><br/>
                     <div class="col-xs-12">
+
                         <h3>Найдено позиций: <?= count($model->products) ?></h3>
-                        <div><?= Html::a('<i class="glyphicon glyphicon-share"></i> К просмотру товаров', ['product/index'], ['target' => '_blank']) ?></div><br/><br/>
                         <?php if (count($model->products)) : ?>
+                            <div><?= Html::a('<i class="glyphicon glyphicon-share"></i> К просмотру товаров', ['product/index'], ['target' => '_blank']) ?></div><br/><br/>
                             <div class="form-group">
                                 <?= Html::submitButton('Parse Details', ['class' => 'btn btn-primary', 'name' => 'parseDetails', 'value' => json_encode($model->details)]) ?>
                             </div>
                         <?php endif; ?>
+                        
                     </div>
                 <?php endif; ?>
+                
                 <?php if ($detailsParsed) : ?>
                     <br/><br/>
                     <div class="col-xs-10 text-muted">
@@ -74,8 +103,7 @@ echo Breadcrumbs::widget([
                         <small>Детализация проходит отдельно по ряду причин: итерация совместно с основным парсингом не дает никаких преимуществ - обращения к страницам товаров в любом случае происходят отдельными запросами; фиксация изменения цены во всех случаях возможна при основном парсинге; цели, следить за изменениями описаний, аттрибутов, изображений - нет, т.к. и смысла в этом мало; раздельный парсинг увеличивает отзывчивость/интерактивность в рамках пользовательского интерфейса; распределяет нагрузку на сервер.</small><br/><br/>
                     </div>
                 <?php endif; ?>
-                <div class="col-xs-12 text-muted"><small>Ограничение хождения по страницам товаров: 2</small></div>
-                <div class="col-xs-12 text-muted"><small>Количество страниц каталога с товарами: 10</small></div>
+
             </div><br/><br/>
 
         </div>
@@ -138,14 +166,17 @@ echo Breadcrumbs::widget([
                         ],
                     ],
                     'disabled' => false,
-                    'onchange'  => 'location = \'index.php?r=parser/trial&word=\' + ($(this).val() ? $(this).find(\':selected\').text() : \'\') + \'&id=' . $model->id . '&reg=' . $model->regionId . '&cat=' . $model->categoryId . '\';',
+                    'onchange'  => '
+                        var keyword = $(this).val() ? $(this).find(\':selected\').text() : \'\';
+                        location = \'index.php?r=parser/trial&word=\' + keyword + \'&id=' . $model->id . '&reg=' . $model->regionId . '&cat=' . $model->categoryId . '\';
+                    ',
                 ]); 
             ?><br/>
 
             <?= Html::input('text', 'flyKeyword', '', [
                     'class' => 'form-control input', 
                     'placeholder' => '...или введите новое',
-                    'onkeypress' => 'console.log($(this).val())',
+                    // 'onkeypress' => 'console.log($(this).val())',
                     // 'onchange' => 'location = \'index.php?r=parser/fly-keyword&word=\' + $(this).val() + \'&id=\'' . $model->id,
                 ]) 
             ?>

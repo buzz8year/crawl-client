@@ -5,6 +5,7 @@ namespace backend\controllers;
 use Yii;
 use backend\models\CategorySource;
 use backend\models\search\CategorySourceSearch;
+use backend\models\opencart\OcSettler;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -31,9 +32,16 @@ class CategorySourceController extends Controller
         $searchModel = new CategorySourceSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        $syncData = [];
+
+        if (Yii::$app->request->post('syncTree')) {
+            $syncData = OcSettler::saveCategories();
+        }
+
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'syncData' => $syncData,
         ]);
     }
 

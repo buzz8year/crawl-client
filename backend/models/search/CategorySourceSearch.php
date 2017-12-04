@@ -14,6 +14,7 @@ class CategorySourceSearch extends CategorySource
 {
     public $title;
     public $status;
+    public $tags;
 
     /**
      * @inheritdoc
@@ -21,8 +22,8 @@ class CategorySourceSearch extends CategorySource
     public function rules()
     {
         return [
-            [['id', 'status', 'category_id', 'source_id', 'self_parent_id'], 'integer'],
-            [['title', 'source_url'], 'safe'],
+            [['id', 'status', 'category_id', 'source_id', 'self_parent_id', 'nest_level'], 'integer'],
+            [['title', 'source_url', 'tags'], 'safe'],
         ];
     }
 
@@ -63,10 +64,11 @@ class CategorySourceSearch extends CategorySource
 
         // grid filtering conditions
         $query->andFilterWhere([
+            'self_parent_id' => $this->self_parent_id,
+            'category_id' => $this->category_id,
+            'nest_level' => $this->nest_level,
             'category_source.id' => $this->id,
             'source_id' => $this->source_id,
-            'category_id' => $this->category_id,
-            'self_parent_id' => $this->self_parent_id,
         ]);
 
         $query->andFilterWhere(['like', 'source_url', $this->source_url]);
@@ -76,6 +78,10 @@ class CategorySourceSearch extends CategorySource
         }
 
         if ($this->status) {
+            $query->andFilterWhere(['status' => $this->status]);
+        }
+
+        if ($this->tags) {
             $query->andFilterWhere(['status' => $this->status]);
         }
 

@@ -66,6 +66,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'source_id',
                 'format'    => 'raw',
+                'filter' => Source::listSources(),
                 'value'     => function ($model) {
                     return Html::a(Source::findOne($model->source_id)->title, ['source/index', 'SourceSearch[id]' => $model->source_id]);
                 },
@@ -78,6 +79,15 @@ $this->params['breadcrumbs'][] = $this->title;
                         return Html::a($category->title, ['category/index', 'CategorySearch[id]' => $model->category_id]);
                     }
                 },
+            ],
+            [
+                'label'     => 'Top Category',
+                'content'   => function ($model) {
+                    return $model->topCategory->title;
+                },
+                'contentOptions' => [
+                    'style' => 'width: 350px; white-space: normal',
+                ],
             ],
             [
                 'attribute' => 'keyword_id',

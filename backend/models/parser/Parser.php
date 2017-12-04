@@ -3,6 +3,7 @@
 namespace backend\models\parser;
 
 use backend\models\parser\ParserSettler;
+use backend\models\opencart\OcSettler;
 use backend\models\Source;
 use JonnyW\PhantomJs\Client as Phantom;
 use Yii;
@@ -65,7 +66,6 @@ class Parser implements ParserInterface
         self::$model->warnings = $dataWarnings;
         self::$model->products = $dataProducts;
         self::$model->details  = $productUrls;            
-        echo('details' . count(self::$model->details));
 
         $settler->logResults(self::$model, microtime(true) - $time);
 
@@ -86,27 +86,32 @@ class Parser implements ParserInterface
 
         $detailsCount = 0;
 
-
         $details = $urlProducts ? $urlProducts : self::$model->details;
-        echo('details' . count($details));
 
         foreach ($details as $id => $url) {
             $detailsData = $this->parse('details', $url);
 
             if (isset($detailsData['description']) && count($detailsData['description'])) {
-                $settler->saveDescriptions($detailsData['description'], $id);
+                $settler->saveDescriptions($detailsData['description'], (int)$id);
             }
             if (isset($detailsData['attribute']) && count($detailsData['attribute'])) {
-                $settler->saveAttributes($detailsData['attribute'], $id);
+                $settler->saveAttributes($detailsData['attribute'], (int)$id);
             }
             if (isset($detailsData['image']) && count($detailsData['image'])) {
-                $settler->saveImages($detailsData['image'], $id);
+                $settler->saveImages($detailsData['image'], (int)$id);
             }
 
             $detailsCount++;
         }
 
+
+
         return $detailsCount;
+    }
+
+    public function syncProducts()
+    {
+        return OcSettler::saveProducts(self::$model->id);
     }
 
     /**
@@ -162,7 +167,8 @@ class Parser implements ParserInterface
                 // }
 
             default:
-                throw new \Exception('Ошибка подключения клиента');
+                return;
+                // throw new \Exception('Ошибка подключения клиента');
         }
     }
 
@@ -193,14 +199,15 @@ class Parser implements ParserInterface
             $this->processResponse(1, $url);
             return $this->curlSession($url);
         }
-        if ($info['http_code'] == 403) {
-            if (self::$agents) {
+        // if ($info['http_code'] == 403) {
+            // if (self::$agents) {
+            if (!$data && self::$agents) {
                 $this->processResponse(2, $url);
                 return $this->curlSession($url);
             } else {
-                throw new \Exception('Source returned error 403 (Access denied) - скорее всего не хватает нужного user-agent заголовка.');
+                // throw new \Exception('Source returned error 403 (Access denied) - скорее всего не хватает нужного user-agent заголовка.');
             }
-        }
+        // }
 
         if ($data) {
             // print_r($info);
@@ -208,7 +215,8 @@ class Parser implements ParserInterface
             $this->processResponse(0, $url);
             return $data;
         } else {
-            throw new \Exception('HTTP Code ' . $info['http_code'] . '. Either url or Curl options are bad. URL: ' . $url);
+            return;
+            // throw new \Exception('HTTP Code ' . $info['http_code'] . '. Either url or Curl options are bad. URL: ' . $url);
         }
     }
 
@@ -221,14 +229,25 @@ class Parser implements ParserInterface
     public function phantomSession(string $url)
     {
         $phantom = Phantom::getInstance();
+        // $phantom->getEngine()->debug(true);
         $phantom->getEngine()->setPath(Yii::getAlias('@phantom'));
+        $phantom->getEngine()->addOption('--ignore-ssl-errors=true');
+        $phantom->getEngine()->addOption('--load-images=false');
 
         $request  = $phantom->getMessageFactory()->createRequest($url);
+        // $request->setDelay(0);
+        // $request->setTimeout(0);
+
         $response = $phantom->getMessageFactory()->createResponse();
 
         $phantom->send($request, $response);
 
         $this->processResponse(0, $url);
+        
+        if (!$response->getContent() && self::$proxies) {
+            // $this->processResponse(1, $url);
+            // return $this->phantomSession($url);
+        }
 
         return $response->getContent();
     }
@@ -304,10 +323,13 @@ class Parser implements ParserInterface
                 }
             }
 
-            $nodes = $this->getNodes($response, $xpath);
-            if ($nodes->length) {
-                return $this->getProducts($nodes);
-            } 
+            if ($response) {
+                $nodes = $this->getNodes($response, $xpath);
+                if ($nodes->length) {
+                    return $this->getProducts($nodes);
+                } 
+            }
+            
             // else {
             //     throw new \Exception(
             //         'Your parsing XPATH string does not match any elements: ' . 
@@ -424,17 +446,27 @@ class Parser implements ParserInterface
     /**
      * @return string
      */
-    public function processUrl(string $url)
+    public function processUrl(string $url, int $sourceId = null)
     {   
-        $trimDomain = self::$model->domain;
-        if (strpos(self::$model->domain, 'www') === false) {
-            $trimDomain = explode('//', self::$model->domain)[1];
+        if (self::$model && self::$model->domain && !$sourceId) {
+            $domain = self::$model->domain;
+        } 
+        elseif ($sourceId) {
+            $domain = Source::findOne($sourceId)->source_url;
+        }
+
+        if (strpos($domain, 'www') === false) {
+            $protocol = explode('//', $domain)[0] . '//';
+            $domain = explode('//', $domain)[1];
         } else {
-            $trimDomain = explode('www.', self::$model->domain)[1];
+            $protocol = explode('www.', $domain)[0] . 'www.';
+            $domain = explode('www.', $domain)[1];
         }
-        if (strpos($url, $trimDomain) === false) {
-            $url = self::$model->domain . $url;
+
+        if (strpos($url, $domain) === false) {
+            $url = $protocol . trim($domain, '/') . $url;
         }
+
         return $url;
     }
 

@@ -89,8 +89,11 @@ class ParseController extends \yii\console\Controller
 
         $categories = $provisioner->activeCategories($sourceId);
         $keywords   = $provisioner->listSourceKeywords($sourceId);
+
         $this->stdout('Categories' . count($categories) . PHP_EOL);
         $this->stdout('Keywords' . count($keywords) . PHP_EOL);
+
+        // LOG: console/runtime/logs/parse.log
         Yii::info('Categories to parse: ' . count($categories) . PHP_EOL, 'parse-console');
         Yii::info('Keywords to parse: ' . count($keywords) . PHP_EOL, 'parse-console');
 
@@ -132,6 +135,8 @@ class ParseController extends \yii\console\Controller
                 }
                 if ($detailsReturn = $parser->parseDetails()) {
                     $parser->parseDetails();
+                    $parser->syncProducts();
+
                     $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
                     Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
                 } else {

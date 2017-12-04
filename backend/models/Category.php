@@ -2,9 +2,8 @@
 
 namespace backend\models;
 
-use backend\models\Source;
-use Yii;
 use yii\helpers\ArrayHelper;
+use Yii;
 
 
 class Category extends \yii\db\ActiveRecord
@@ -21,7 +20,7 @@ class Category extends \yii\db\ActiveRecord
         return [
             [['title'], 'required'],
             [['id', 'category_outer_id', 'status'], 'integer'],
-            [['title'], 'string', 'max' => 255],
+            [['title', 'tags'], 'string', 'max' => 255],
         ];
     }
 
@@ -32,6 +31,7 @@ class Category extends \yii\db\ActiveRecord
             'category_id' => 'Cat. ID',
             'category_outer_id' => 'Category Outer ID',
             'title' => 'Title',
+            'tags' => 'Tags',
         ];
     }
 
@@ -60,4 +60,18 @@ class Category extends \yii\db\ActiveRecord
         return $this->hasMany(Product::className(), ['category_id' => 'id']);
     }
 
+    static function countTagUsage()
+    {   
+        $data = [];
+        foreach (self::find()->all() as $category) {
+            if ($category->tags) {
+                foreach (explode('+', $category->tags) as $tagId) {
+                    $tag = CategoryTags::findOne($tagId)->tag;
+                    $data[$tag] = isset($data[$tag]) ? ($data[$tag] + 1) : 1;
+                }
+            }
+        }
+        natsort($data);
+        return array_reverse($data);
+    }
 }

@@ -85,6 +85,34 @@ class Product extends \yii\db\ActiveRecord
         return $this->hasOne(Category::className(), ['id' => 'category_id']);
     }
 
+    public function getTopCategory()
+    {   
+        return Category::findOne($this->topCategorySource->category_id);
+    }
+
+    public function getCategorySource()
+    {   
+        return $this->hasOne(CategorySource::className(), ['id' => 'category_source_id']);
+    }
+
+    public function getTopCategorySource()
+    {   
+        if ($this->categorySource->self_parent_id) {
+            return $this->findTopCategorySource($this->categorySource);
+        }
+    }
+
+    public function findTopCategorySource($categorySource)
+    {   
+        if ($categorySource->self_parent_id) {
+            $parent = CategorySource::findOne($categorySource->self_parent_id);
+            if ($parent->self_parent_id) {
+                return $this->findTopCategorySource($parent);
+            }
+            return $parent;
+        }
+    }
+
     public function categoryTitle()
     {
         if (isset($this->category)) {

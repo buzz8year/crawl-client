@@ -39,13 +39,11 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
     public function parseCategories()
     {
         $data = [];
-            print_r(self::$options);
 
-        if ($response = $this->curlSession('http://www.xcomspb.ru/search/?s=envy')) {
-            print_r($response);
-            // if (($categories = $this->getNodes($response, self::CATEGORY_NODE)) && $categories->length) {
-            //     $data = $this->adoptCategories($categories);
-            // }
+        if ($response = $this->curlSession('http://www.xcomspb.ru/sitemap')) {
+            if (($categories = $this->getNodes($response, self::CATEGORY_NODE)) && $categories->length) {
+                $data = $this->adoptCategories($categories);
+            }
         }
 
         return $data;

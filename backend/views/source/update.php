@@ -7,7 +7,7 @@ use yii\helpers\Html;
 
 $this->title = 'Update Source: ' . $model->title;
 $this->params['breadcrumbs'][] = ['label' => 'Sources', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->title, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = ['label' => $model->title, 'url' => ['parser/trial', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>
 
@@ -15,7 +15,8 @@ $this->params['breadcrumbs'][] = 'Update';
     <div class="col-lg-6">
         <h1><?= Html::encode($this->title) ?></h1>
     </div>
-    <div class="col-lg-5 pull-right" style="padding-top: 25px">
+    <div class="col-lg-12" style="padding-top: 25px">
+        <span><?php echo Html::a('Удалить несинхр. (' . count($model->asyncProducts) . ') товары', ['source/delete-products', 'id' => $model->id, 'async' => 1], ['class' => 'btn btn-danger']); ?></span>
         <span><?php echo Html::a('Удалить все (' . count($model->products) . ') товары', ['source/delete-products', 'id' => $model->id], ['class' => 'btn btn-danger']); ?></span>
         <span><?php echo Html::a('Удалить все (' . count($model->categorySources) . ') категории', ['source/delete-categories', 'id' => $model->id], ['class' => 'btn btn-danger pull-right']); ?></span>
     </div>

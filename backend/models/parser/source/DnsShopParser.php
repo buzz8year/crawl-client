@@ -44,7 +44,8 @@ class DnsShopParser extends Parser implements ParserSourceInterface
     {
         $data = [];
 
-        if ($response = $this->sessionClient(self::$model->domain)) {
+        if ($response = $this->phantomSession(self::$model->domain)) {
+            // print_r($response);
             if (($wrappers = $this->getNodes($response, self::CATEGORY_WRAP_NODE)) && $wrappers->length) {
                 foreach ($wrappers as $treeWrapper) {
                     if ($categoryZero = $treeWrapper->previousSibling) {

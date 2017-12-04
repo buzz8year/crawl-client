@@ -2,6 +2,7 @@
 
 use yii\grid\GridView;
 use yii\helpers\Html;
+use backend\models\Category;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\models\search\CategorySearch */
@@ -19,6 +20,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
         <?=Html::a('Create Category', ['create'], ['class' => 'btn btn-success'])?>
     </p><br/><br/>
+
+    <?php 
+    // foreach (Category::countTagUsage() as $tagId => $tagCount) {
+    //     echo $tagId . ': ' . $tagCount . '<br/>';
+    // } 
+    ?>
 
     <?=GridView::widget([
     'dataProvider' => $dataProvider,
@@ -77,7 +84,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'data-id' => $model->id,
                         'class'   => $model->status ? 'cat-status label label-primary' : 'cat-status label label-white',
                         'style'   => 'cursor: pointer; float: none; box-shadow: none; font-size: 11px; line-height: 2',
-                        'title'   => 'Включить категорию в парсинг',
+                        'title'   => 'ВНИМАНИЕ! Все связанные категории (по ресурсам) будут включены/выключены в парсинг',
                         'onclick' => '
                                 $.get(\'index.php?r=category/status-update&id=' . $model->id . '\')
                                     .done( function (data) {

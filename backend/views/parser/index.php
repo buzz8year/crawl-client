@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use backend\models\Source;
 
 ?>
 
@@ -10,11 +11,12 @@ use yii\helpers\Html;
 		{
 			echo '<div class=\'col-xs-4\' style=\'margin: 30px 0\'>';
 			if ($source['status']) {
-				echo Html::a($source['title'], [ 'parser/trial', 'id' => $id ], [ 'class' => 'text-uppercase' ]);
+				echo '<b>' . Html::a($source['title'], [ 'parser/trial', 'id' => $id ], [ 'class' => 'text-uppercase' ]) . '</b>';
 			} else {
 				echo '<span class=\'text-uppercase text-danger\'>' . $source['title'] . '</span>';
 			}
-			echo '<br/><small>' . Html::a($source['domain'], $source['domain']) . '</small></div>';
+			echo '<br/><small>' . Html::a($source['domain'], $source['domain']) . '</small>';
+			echo '<br/><small class="text-muted">Категорий: ' . count(Source::findOne($id)->categorySources) . '</small></div>';
 		} 
 	?>
 </div>

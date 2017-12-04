@@ -22,9 +22,9 @@ class AvitoParser extends Parser implements ParserSourceInterface
     const XPATH_DESCRIPTION = '//*[contains(@class, \'item-description-text\')]'; // At Product Page
     const XPATH_IMAGE       = '//*[contains(@class, \'gallery-extended-img-frame\')]'; // At Product Page. Full size.
 
-    const LEVEL_ONE_CATEGORY_NODE  = '//*[contains(@class, \'b-category-list\')]//a'; // At HomePage navmenu
+    const LEVEL_ONE_CATEGORY_NODE  = ''; // At HomePage navmenu
     const LEVEL_ONE_CATEGORY_CLASS = 'root-category'; // At Level One Category Page leftmenu
-    const CATEGORY_WRAP_NODE       = '//*[contains(@class, \'catalog-counts\')]/*[contains(@class, \'catalog-counts__section\')]'; // At HomePage navmenu
+    const CATEGORY_WRAP_NODE       = '//div[@class=\'category-map\']/dl'; // At HomePage navmenu
 
     const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
 
@@ -34,58 +34,82 @@ class AvitoParser extends Parser implements ParserSourceInterface
     /**
      * @return array
      */
-    public function nestCategories(string $parentUrl = '', string $parentTitle = '', int $nestLevel = -1)
+    public function nestCategories(string $parentUrl = '', string $parentTitle = '', int $nestLevel = -1, int $sleepKey = 0)
     {
         $data = [];
 
-        if ($responseCategory = $this->curlSession(self::$model->domain . '/' . self::$region . $parentUrl)) {
-            if (($wrappers = $this->getNodes($responseCategory, self::CATEGORY_WRAP_NODE)) && $wrappers->length == 2) {
-                $categoryWrapper = $wrappers[0];
-            }
-        }
-
-        if (isset($categoryWrapper)) {
-
-            if (($findScript = $categoryWrapper->getElementsByTagName('script')) && $findScript->length) {
-                $script = $findScript[0];
-            }
-
-            if (isset($script)) {
-                $left       = explode('[{', $script->nodeValue)[1];
-                $right      = explode('}]', $left)[0];
-                $categories = json_decode('[{' . $right . '}]');
-            } else {
-                $categories = $categoryWrapper->getElementsByTagName('a');
-            }
-
-            if (isset($categories)) {
-                $nestLevel++;
-
-                foreach ($categories as $key => $category) {
-                    if ($key > 0) {
-                        $title = isset($script) ? $category->name : $category->textContent;
-                        $deque = isset($script) ? explode('?', $category->url)[0] : explode('?', $category->getAttribute('href'))[0];
-
-                        $dereg = explode('/', $deque)[1];
-                        $href  = explode('/' . $dereg, $deque)[1];
-                        $alias = ltrim($href, '/');
-
-                        // $thisTitle = $parentTitle . ($nestLevel ? ' > ' : '') . $title;
-
-                        $data[$alias] = [
+        if ($response = $this->curlSession(self::$model->domain . '/map')) {
+            if ($wrappers = $this->getNodes($response, self::CATEGORY_WRAP_NODE)) {
+                print_r($wrappers);
+                foreach ($wrappers as $keyZero => $wrapZero) {
+                    $zero = $wrapZero->getElementsByTagName('dt')[0]->getElementsByTagName('a')[0];
+                    if ($zero->textContent) {
+                        $data[$keyZero] = [
                             'csid'       => '',
                             'dump'       => '',
-                            'href'       => $href,
-                            'alias'      => $alias,
-                            'title'      => $title,
-                            'nest_level' => $nestLevel,
-                            'children'   => $this->nestCategories($href, $title, $nestLevel),
+                            'alias'      => '',
+                            'href'       => $this->processUrl($zero->getAttribute('href')),
+                            'title'      => trim($zero->textContent) ?? '--',
+                            'nest_level' => 0,
                         ];
                     }
+                    foreach ($wrapZero->getElementsByTagName('dd') as $keyOne => $linkOne) {
+                        if (!$linkOne->getAttribute('class')) {
+                            $one = $linkOne->getElementsByTagName('a')[0];
+                            if ($one->textContent) {
+                                $data[$keyZero]['children'][$keyOne] = [
+                                    'csid'       => '',
+                                    'dump'       => '',
+                                    'alias'      => '',
+                                    'href'       => $this->processUrl($one->getAttribute('href')),
+                                    'title'      => trim($one->textContent) ?? '--',
+                                    'nest_level' => 1,
+                                ];
+                            }
 
-                    if ($key == 2 || $nestLevel == 4) {
-                        // Do not forget to REMOVE
-                        break;
+                            $wrapTwo = $wrapZero->getElementsByTagName('dd')[$keyOne + 1];
+
+                            if ($wrapTwo->getAttribute('class') == 'params c-2') {
+                                foreach ($wrapTwo->getElementsByTagName('strong') as $two) {
+                                    $expTwo = explode('/', $two->getElementsByTagName('a')[0]->getAttribute('href'));
+                                    if ($two->textContent) {
+                                        $data[$keyZero]['children'][$keyOne]['children'][end($expTwo)] = [
+                                            'csid'       => '',
+                                            'dump'       => '',
+                                            'alias'      => '',
+                                            'href'       => $this->processUrl($two->getElementsByTagName('a')[0]->getAttribute('href')),
+                                            'title'      => trim($two->textContent) ?? '--',
+                                            'nest_level' => 2,
+                                        ];
+                                    }
+                                }
+                                foreach ($wrapTwo->getElementsByTagName('a') as $three) {
+                                    $expThree = explode('/', $three->getAttribute('href'));
+                                    if ($three->textContent && isset($data[$keyZero]['children'][$keyOne]['children'][$expThree[count($expThree) - 2]])) {
+                                        $data[$keyZero]['children'][$keyOne]['children'][$expThree[count($expThree) - 2]]['children'][] = [
+                                            'csid'       => '',
+                                            'dump'       => '',
+                                            'alias'      => '',
+                                            'href'       => $this->processUrl($three->getAttribute('href')),
+                                            'title'      => trim($three->textContent) ?? '--',
+                                            'nest_level' => 2,
+                                        ];
+                                    } else {
+                                        $expThree = explode('/', $three->getAttribute('href'));
+                                        if ($three->textContent) {
+                                            $data[$keyZero]['children'][$keyOne]['children'][end($expThree)] = [
+                                                'csid'       => '',
+                                                'dump'       => '',
+                                                'alias'      => '',
+                                                'href'       => $this->processUrl($three->getAttribute('href')),
+                                                'title'      => trim($three->textContent) ?? '--',
+                                                'nest_level' => 2,
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

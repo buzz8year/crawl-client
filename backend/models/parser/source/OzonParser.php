@@ -36,6 +36,7 @@ class OzonParser extends Parser implements ParserSourceInterface
     public function parseCategories()
     {
         $response      = $this->curlSession(self::$model->domain);
+        print_r($response);
         $levelOneNodes = $this->getNodes($response, self::LEVEL_ONE_CATEGORY_NODE);
 
         $data = [];

@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use backend\models\morph\Morph;
 use Yii;
 
 
@@ -46,8 +47,71 @@ class CategorySource extends \yii\db\ActiveRecord
     }
 
 
+    static function listUniques(int $nest = 0)
+    {   
+        $data = [];
+        foreach (self::find()->where(['nest_level' => $nest])->all() as $category) {
+            $tags = implode('+', $category->tags);
+            $data[$tags] = isset($data[$tags]) ? ($data[$tags] + 1) : 1;
+        }
+        return $data;
+    }
+
+    public function getTags() {
+        // // if ($this->self_parent_id) {
+        //     // $parent = Category::findOne($this->self_parent_id);
+        //     // return $morphier->getPhraseLemmas($parent->title) . '+' . $morphier->getPhraseLemmas($this->category->title);
+        // // } else {
+        //     // return $morphier->getPhraseLemmas($this->category->title);
+        //     $lemmas = $this->getRecursiveLemmas($this->id);
+        //     // natsort($lemmas);
+        //     return $lemmas;
+        //     // return array_reverse($lemmas);
+        // // }
+
+        if ($tagsImplode = $this->category->tags) {
+            $tags = [];
+            $exp = explode('+', $tagsImplode);
+            foreach ($exp as $tagId) {
+                $tag = CategoryTags::findOne($tagId);
+                $tags[] = $tag->tag;
+            }
+            return $tags;
+        }
+
+        return [];
+
+    }
+
+
+    // // public function getRecursiveLemmas(int $categoryId, string $lemmas = '')
+    // public function getRecursiveLemmas(int $categoryId, array $lemmas = [])
+    // {
+    //     $morphier = new Morph('ru');
+    //     $categorySource = CategorySource::findOne($categoryId);
+    //     $category = Category::findOne($categorySource->category_id);
+    //     if ($category->title !== '--') {
+    //         // $lemmas = $morphier->getPhraseLemmas($category->title) . ($lemmas ? ('+' . $lemmas) : '');
+    //         $newLemmas = $morphier->getPhraseLemmas($category->title, 1);
+    //         // $newLemmas = $morphier->getPhraseLemmas($category->title);
+    //         foreach ($newLemmas as $key => $newLemma) {
+    //             if (!in_array($newLemma, $lemmas)) {
+    //                 $lemmas[] = $newLemma;
+    //                 // array_unshift($lemmas, $newLemma);
+    //             }
+    //         }
+    //     }
+    //     if ($parentId = CategorySource::findOne($categoryId)->self_parent_id) {
+    //         return $this->getRecursiveLemmas($parentId, $lemmas);
+    //     }
+    //     // return $lemmas;
+    //     return array_reverse($lemmas);
+    // }
+
     public function getSource()
     {
         return $this->hasOne(Source::className(), ['id' => 'source_id']);
     }
+
+
 }

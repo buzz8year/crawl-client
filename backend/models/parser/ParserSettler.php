@@ -18,6 +18,9 @@ use backend\models\ProductImage;
 use backend\models\ProxySource;
 use backend\models\Proxy;
 use backend\models\OptionsLog;
+use backend\models\CategoryTags;
+use backend\models\morph\Morph;
+use backend\models\opencart\OcSettler;
 use Yii;
 
 // use backend\models\SynonymaClient;
@@ -31,6 +34,15 @@ class ParserSettler implements ParserSettlingInterface
      * @var int
      */
     static $sourceId;
+
+    public function getDb(int $db) {
+        switch ($db) {
+            case 1:
+                return Yii::$app->db;
+            case 2:
+                return Yii::$app->ocdb;
+        }
+    }
 
     /**
      * @var array grabs all missed categories, used to display immediately after tree is parsed.
@@ -61,7 +73,7 @@ class ParserSettler implements ParserSettlingInterface
      * @param int $sourceId
      * @return array - missed categories info
      */
-    public function saveCategories($parsedCategories)
+    public function saveCategories($parsedCategories, int $syncCategories = 0)
     {
         if (($session = Yii::$app->session) && $session->isActive) {
             $session->close();
@@ -70,6 +82,10 @@ class ParserSettler implements ParserSettlingInterface
         foreach ($parsedCategories as $category) {
             $nestCategory = $this->nestCategory($category);
         }
+
+        // if ($syncCategories) {
+        //     OcSettler::saveCategories(self::$sourceId);
+        // }
     }
 
     /**
@@ -85,11 +101,40 @@ class ParserSettler implements ParserSettlingInterface
             $session->close();
         }
 
-        $categoryExist = Category::find()->where(['title' => $category->title])->one();
+        $morphier = new Morph('ru');
+        $lemmas = $morphier->getPhraseLemmas($category->title);
 
-        if (!$categoryExist) {
+        $tags = [];
+        foreach ($lemmas as $lemma) {
+            $tagExist = CategoryTags::find()->where(['tag' => $lemma])->one();
+            if ($tagExist) {
+                $tagId = $tagExist->id;
+            } else {
+                $newTag = new CategoryTags();
+                $newTag->tag = $lemma;
+                if ($newTag->save()) {
+                    $tagId = $newTag->id;
+                }
+            }
+            $tags[] = $tagId;
+        }
+        natsort($tags);
+
+        $implodeTags = implode('+', $tags);
+
+        $categoryExist = Category::find()->where(['tags' => $implodeTags])->one();
+        // $categoryExist = Category::find()->where(['title' => $category->title])->one();
+
+
+        if ($categoryExist) {
+            if (!$categoryExist->tags) {
+                $categoryExist->tags = $implodeTags;
+                $categoryExist->save();
+            }
+        } else {
             $newCategory        = new Category();
-            $newCategory->title = $category->title;
+            $newCategory->tags  = $implodeTags;
+            $newCategory->title = trim($category->title);
             $newCategory->save();
         }
 
@@ -138,12 +183,26 @@ class ParserSettler implements ParserSettlingInterface
         }
 
         foreach ($categories as $category) {
-            $categoryExist = Category::find()->where(['title' => $category['title']])->one();
 
-            if (!$categoryExist) {
-                self::$missedCategories['global'][] = $category['title'];
-                self::$missedCategories['source'][] = $category['title'];
-            } else {
+            $morphier = new Morph('ru');
+            $lemmas = $morphier->getPhraseLemmas($category['title']);
+
+            $tags = [];
+            foreach ($lemmas as $lemma) {
+                $tagExist = CategoryTags::find()->where(['tag' => $lemma])->one();
+                if ($tagExist) {
+                    $tags[] = $tagExist->id;
+                }
+            }
+
+            if ($tags) {
+                natsort($tags);
+                $implodeTags = implode('+', $tags);
+                $categoryExist = Category::find()->where(['tags' => $implodeTags])->one();
+            }
+
+
+            if (isset($categoryExist) && $categoryExist) {
                 $categorySourceExist = CategorySource::find()
                     ->where([
                         'source_id'   => self::$sourceId,
@@ -157,11 +216,16 @@ class ParserSettler implements ParserSettlingInterface
                 } else {
 
                 }
+            } else {
+                self::$missedCategories['global'][] = $category['title'];
+                self::$missedCategories['source'][] = $category['title'];
             }
 
             if (isset($category['children']) && count($category['children'])) {
                 $this->nestMisses($category['children']);
             }
+
+
         }
 
         return self::$missedCategories;
@@ -181,7 +245,7 @@ class ParserSettler implements ParserSettlingInterface
 
             if (isset($product['href'])) {
 
-                $productExist = Product::find()->where(['title' => $product['href']])->one();
+                $productExist = Product::find()->where(['source_url' => $product['href']])->one();
                 // $productExist = Product::find()->where(['title' => $product['name']])->one();
 
                 // if (!$productExist || $productExist->source_url != $product['href']) {
@@ -194,8 +258,8 @@ class ParserSettler implements ParserSettlingInterface
                     $newProduct->keyword_id         = $model->keywordId;
                     $newProduct->region_id          = $model->regionId;
                     $newProduct->source_url         = $product['href'];
-                    $newProduct->title              = $product['name'];
                     $newProduct->price              = $product['price'];
+                    $newProduct->title              = trim($product['name']);
 
                     if (!$newProduct->save()) {
                         throw new \Exception('
@@ -235,7 +299,7 @@ class ParserSettler implements ParserSettlingInterface
     /**
      * @inheritdoc
      */
-    public function saveDescriptions(array $descriptionData, int $productId)
+    public function saveDescriptions(array $descriptionData, int $productId, int $syncGoods = 0)
     {
         foreach ($descriptionData as $desc) {
             if ($desc) {
@@ -246,8 +310,8 @@ class ParserSettler implements ParserSettlingInterface
                 if (!$descExist) {
                     $newDesc                = new Description();
                     $newDesc->product_id    = $productId;
-                    $newDesc->title         = $desc['title'] ?? '';
-                    $newDesc->text_original = $desc['text'];
+                    $newDesc->title         = isset($desc['title']) ? trim($desc['title']) : '';
+                    $newDesc->text_original = trim($desc['text']);
                     // $newDesc->text_synonymized = $synonym;
                     // $newDesc->status = $synonym ? 1 : 0;
 
@@ -269,19 +333,19 @@ class ParserSettler implements ParserSettlingInterface
 
                 if (!$attributeExist) {
                     $newAttribute        = new Attribute();
-                    $newAttribute->title = $attribute['title'];
+                    $newAttribute->title = trim($attribute['title']);
                     $newAttribute->save();
                 }
 
                 $valueExist = AttributeValue::find()->where([
                     'attribute_id' => $attributeExist->id ?? $newAttribute->id,
-                    'value'        => $attribute['value'],
+                    'value'        => trim($attribute['value']),
                 ])->one();
 
                 if (!$valueExist) {
                     $newValue               = new AttributeValue();
                     $newValue->attribute_id = $attributeExist->id ?? $newAttribute->id;
-                    $newValue->value        = $attribute['value'];
+                    $newValue->value        = trim($attribute['value']);
                     $newValue->save();
                 }
 

@@ -1,0 +1,1 @@
+php /home/a/aessystems/imp.500sales.ru/public_html/yii parse

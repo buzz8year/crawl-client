@@ -196,17 +196,24 @@ class SourceController extends Controller
         return $this->redirect(['source/update', 'id' => $id]);
     }
 
-    public function actionDeleteProducts($id)
+    public function actionDeleteProducts(int $id, int $async = 0)
     {
         $model = $this->findModel($id);
         $count = count($model->products);
+        $session = Yii::$app->session;
 
         foreach ($model->products as $product) {
-            $product->delete();
+            if ($async) {
+                if ($product->sync_status == 0) {
+                    $product->delete();
+                    $session->setFlash('products-deleted', 'Все несинхр. товары ресурса удалены.');
+                }
+            } else {
+                $product->delete();
+                $session->setFlash('products-deleted', 'Все (' . $count . ') товары ресурса удалены.');
+            }
         }
 
-        $session = Yii::$app->session;
-        $session->setFlash('products-deleted', 'Все (' . $count . ') товары ресурса удалены.');
 
         return $this->redirect(['source/update', 'id' => $id]);
     }

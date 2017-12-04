@@ -233,6 +233,12 @@ class Source extends \yii\db\ActiveRecord
     }
 
 
+    public function getAsyncProducts()
+    {
+        return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->all();
+    }
+
+
     public function getProxySources()
     {
         return $this->hasMany(ProxySource::className(), ['source_id' => 'id'])->orderBy(['queue' => SORT_ASC]);
