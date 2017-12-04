@@ -83,7 +83,9 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'label'     => 'Top Category',
                 'content'   => function ($model) {
-                    return $model->topCategory->title;
+                    if (isset($model->topCategory)) {
+                        return $model->topCategory->title;
+                    }
                 },
                 'contentOptions' => [
                     'style' => 'width: 350px; white-space: normal',
