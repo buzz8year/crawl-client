@@ -14,7 +14,8 @@ return [
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
-        '@phantom' => __DIR__ . '/../../vendor/bin/phantomjs.exe',
+        '@phantom' => __DIR__ . '/../../vendor/bin/phantomjs',
+        // '@phantom' => __DIR__ . '/../../vendor/bin/phantomjs.exe',
     ],
     'controllerMap' => [
         'fixture' => [

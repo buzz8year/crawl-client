@@ -112,6 +112,8 @@ class ParseController extends \yii\console\Controller
                     Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
                 }
                 if ($detailsReturn = $parser->parseDetails()) {
+                    $parser->syncProducts();
+                    
                     $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
                     Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
                 } else {
@@ -134,7 +136,6 @@ class ParseController extends \yii\console\Controller
                     Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
                 }
                 if ($detailsReturn = $parser->parseDetails()) {
-                    $parser->parseDetails();
                     $parser->syncProducts();
 
                     $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
