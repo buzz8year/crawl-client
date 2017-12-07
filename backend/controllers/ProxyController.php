@@ -5,6 +5,8 @@ namespace backend\controllers;
 use Yii;
 use backend\models\Proxy;
 use backend\models\search\ProxySearch;
+use backend\models\Source;
+use backend\models\ProxySource;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -104,6 +106,29 @@ class ProxyController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * Assigns an existing Proxy model to all sources globally.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionAssignGlobal($id)
+    {
+        foreach (Source::find()->all() as $source) {
+            $proxySourceExist = ProxySource::find()->where(['source_id' => $source->id])->one();
+
+            if (!$proxySourceExist) {
+                $newProxySource = new ProxySource();
+                $newProxySource->proxy_id = $id;
+                $newProxySource->source_id = $source->id;
+                $newProxySource->save();
+            }
+        }
+
+        $session = Yii::$app->session;
+        $session->setFlash('proxy-global', 'Прокси подписан ко всем ресурсам.');
+        return $this->redirect(['proxy/update', 'id' => $id]);
     }
 
     /**

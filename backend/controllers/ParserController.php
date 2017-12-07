@@ -95,12 +95,14 @@ class ParserController extends Controller
 
         // TREE: Cached or build and then cache
         $sourceCategories = [];
-        if ($cachedTree === false && $rawCategories) {
-            $sourceCategories = ParserProvisioner::buildTree($rawCategories);
-            Yii::$app->cache->set('categoryTreeId=' . $model->id, $sourceCategories);
-        } elseif ($cachedTree) {
-            $sourceCategories = $cachedTree;
-        }
+        if ($model->id != 6) { // TODO: Remove
+            if ($cachedTree === false && $rawCategories) {
+                $sourceCategories = ParserProvisioner::buildTree($rawCategories);
+                Yii::$app->cache->set('categoryTreeId=' . $model->id, $sourceCategories);
+            } elseif ($cachedTree) {
+                $sourceCategories = $cachedTree;
+            }
+        } // TODO: Remove
 
         // TREE: Flush cache
         if (Yii::$app->request->post('flushTree')) {
@@ -112,6 +114,11 @@ class ParserController extends Controller
         if ($flyKeyword = Yii::$app->request->post('flyKeyword')) {
             $flyKeyword = $this->processKeyword($id, $flyKeyword, 1);
             return Yii::$app->getResponse()->redirect(['parser/trial', 'id' => $id, 'reg' => $reg, 'cat' => $cat, 'word' => $flyKeyword]);
+        }
+
+        // SALES: Sales Flag
+        if (Yii::$app->request->post('parseSales')) {
+            $model->saleFlag = true;
         }
 
         // PARSE: Products
@@ -141,7 +148,7 @@ class ParserController extends Controller
             'sourceCategories' => $sourceCategories,
             'sourceKeywords'   => $sourceKeywords,
             'detailsParsed'    => $detailsParsed,
-            'syncData'    => $syncData,
+            'syncData'         => $syncData,
         ]);
     }
 
@@ -230,20 +237,21 @@ class ParserController extends Controller
             $newKeyword->word = $word;
             $newKeyword->save();
 
+            $keywordSource = new KeywordSource();
+            $keywordSource->keyword_id = $newKeyword->id;
+            $keywordSource->source_id = $id;
+            $keywordSource->save();
+
             // GLOBAL: Assign keyword globally, to all sources, or specifically to current one
             if ($global) {
                 foreach (Source::find()->all() as $source) {
-                    $keywordSource = new KeywordSource();
-                    $keywordSource->keyword_id = $newKeyword->id;
-                    $keywordSource->source_id = $source->id;
-                    $keywordSource->save();
+                    if ($source->id != $id) {
+                        $keywordSource = new KeywordSource();
+                        $keywordSource->keyword_id = $newKeyword->id;
+                        $keywordSource->source_id = $source->id;
+                        $keywordSource->save();
+                    }
                 }
-
-            } else {
-                $keywordSource = new KeywordSource();
-                $keywordSource->keyword_id = $newKeyword->id;
-                $keywordSource->source_id = $id;
-                $keywordSource->save();
             }
         }
 

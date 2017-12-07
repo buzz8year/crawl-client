@@ -13,14 +13,15 @@ class ParseController extends \yii\console\Controller
     const QUANTITY_TITLE   = 'Кол-во товаров';
     const DELIMITER_NUMBER = 100;
 
-    public function actionIndex(int $id = null, string $reg = '', string $cat = '', string $word = '')
+    // public function actionIndex(int $id = null, string $saleFlag = '', string $reg = '', string $cat = '', string $word = '')
+    public function actionIndex(int $id = null, string $saleFlag = '')
     {
         if ($id) {
-            $this->parseSource($id);
+            $this->parseSource($id, $saleFlag);
         } else {
             $provisioner = new ParserProvisioner();
             foreach ($provisioner->activeSources() as $sourceId => $source) {
-                $this->parseSource($sourceId);
+                $this->parseSource($sourceId, $saleFlag);
             }
         }
     }
@@ -72,13 +73,17 @@ class ParseController extends \yii\console\Controller
 
     }
 
-    public function parseSource(int $sourceId)
+    public function parseSource(int $sourceId, string $saleFlag = '')
     {
         $super       = new Parser();
         $provisioner = new ParserProvisioner();
 
         $model  = $super->createModel($sourceId);
         $parser = new $model->class();
+
+        if ($saleFlag === 'sale') {
+            $model->saleFlag = true;
+        }
 
         $this->stdout(
             PHP_EOL . PHP_EOL .
@@ -90,37 +95,37 @@ class ParseController extends \yii\console\Controller
         $categories = $provisioner->activeCategories($sourceId);
         $keywords   = $provisioner->listSourceKeywords($sourceId);
 
-        $this->stdout('Categories' . count($categories) . PHP_EOL);
-        $this->stdout('Keywords' . count($keywords) . PHP_EOL);
+        $this->stdout('Categories Found: ' . count($categories) . PHP_EOL);
+        $this->stdout('Keywords Found: ' . count($keywords) . PHP_EOL . PHP_EOL);
 
         // LOG: console/runtime/logs/parse.log
         Yii::info('Categories to parse: ' . count($categories) . PHP_EOL, 'parse-console');
         Yii::info('Keywords to parse: ' . count($keywords) . PHP_EOL, 'parse-console');
 
-        if ($keywords) {
-            $this->stdout('ITERATE: Keywords' . PHP_EOL . PHP_EOL);
+        // if ($keywords) {
+        //     $this->stdout('ITERATE: Keywords' . PHP_EOL . PHP_EOL);
 
-            foreach ($keywords as $keywordId => $keyword) {
-                $model->keywordId = $keywordId;
-                $model->url       = $parser->urlBuild('', '', $keyword);
+        //     foreach ($keywords as $keywordId => $keyword) {
+        //         $model->keywordId = $keywordId;
+        //         $model->url       = $parser->urlBuild('', '', $keyword);
 
-                if ($productsReturn = $parser->parseProducts()) {
-                    $this->stdout(
-                        $model->url . PHP_EOL .
-                        $productsReturn . ' Products' . PHP_EOL
-                    );
-                    Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
-                }
-                if ($detailsReturn = $parser->parseDetails()) {
-                    $parser->syncProducts();
-                    
-                    $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
-                    Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
-                } else {
-                    $this->stdout('.' . PHP_EOL);
-                }
-            }
-        }
+        //         if ($productsReturn = $parser->parseProducts()) {
+        //             $this->stdout(
+        //                 $model->url . PHP_EOL .
+        //                 $productsReturn . ' Products' . PHP_EOL
+        //             );
+        //             Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
+        //         }
+        //         if ($detailsReturn = $parser->parseDetails()) {
+        //             $parser->syncProducts();
+
+        //             $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
+        //             Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
+        //         } else {
+        //             $this->stdout('.' . PHP_EOL);
+        //         }
+        //     }
+        // }
 
         if ($categories) {
             $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);

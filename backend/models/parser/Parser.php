@@ -23,91 +23,6 @@ class Parser implements ParserInterface
 
     static $client;
 
-    public function parseProducts()
-    {
-        $time = microtime(true);
-
-        $settler = new ParserSettler();
-
-        $dataWarnings = [];
-        $dataProducts = [];
-        $dataDetails  = [];
-
-        $warnings = $this->parse('warning', self::$model->url);
-
-        if (!$warnings) {
-
-            $page = 0;
-
-            while ($data = $this->parse('catalog', self::$model->url, $this->pageQuery($page, self::$model->url))) {
-                $last = end($dataProducts);
-                $page++;
-
-                // if ($last === end($data) || $page > self::$model->limitPage) {
-                if ($last === end($data) || $page > 3) {
-                    break;
-                } else {
-                    foreach ($data as $product) {
-                        $dataProducts[] = $product;
-                    }
-                }
-            }
-
-            $productUrls = $settler->saveProducts($dataProducts, self::$model);
-
-        } else {
-
-            foreach ($warnings as $warning) {
-                $dataWarnings[] = $warning;
-            }
-
-        }
-
-        self::$model->warnings = $dataWarnings;
-        self::$model->products = $dataProducts;
-        self::$model->details  = $productUrls;            
-
-        $settler->logResults(self::$model, microtime(true) - $time);
-
-        if ($dataProducts) {
-            return count($dataProducts);
-        }
-    }
-
-    /**
-     * parseDetails() parses products' details
-     * @param array $products - products array with id-url pairs
-     * @return void
-     * TODO: integrate differentiated methods of parsing desc, attr, img to a single one
-     */
-    public function parseDetails(array $urlProducts = [])
-    {
-        $settler = new ParserSettler();
-
-        $detailsCount = 0;
-
-        $details = $urlProducts ? $urlProducts : self::$model->details;
-
-        foreach ($details as $id => $url) {
-            $detailsData = $this->parse('details', $url);
-
-            if (isset($detailsData['description']) && count($detailsData['description'])) {
-                $settler->saveDescriptions($detailsData['description'], (int)$id);
-            }
-            if (isset($detailsData['attribute']) && count($detailsData['attribute'])) {
-                $settler->saveAttributes($detailsData['attribute'], (int)$id);
-            }
-            if (isset($detailsData['image']) && count($detailsData['image'])) {
-                $settler->saveImages($detailsData['image'], (int)$id);
-            }
-
-            $detailsCount++;
-        }
-
-
-
-        return $detailsCount;
-    }
 
     public function syncProducts()
     {
@@ -126,12 +41,13 @@ class Parser implements ParserInterface
             'title'  => $source->title,
             'domain' => $source->source_url,
             'class'  => $source->class_namespace,
-            'limitPage'  => $source->limit_page,
-            'limitDetail'  => $source->limit_detail,
-            'regionId',
+            'limitPage' => $source->limit_page,
+            'limitDetail' => $source->limit_detail,
+            'saleFlag' => false,
             'categorySourceId',
             'categoryId',
             'keywordId',
+            'regionId',
             'warnings',
             'products',
             'details',
@@ -395,7 +311,7 @@ class Parser implements ParserInterface
                     && defined(self::$model->class . '::XPATH_DESCRIPTION')
                     && self::$model->class::XPATH_DESCRIPTION) {
                     
-                    $nodes    = $this->getNodes($response, self::$model->class::XPATH_DESCRIPTION);
+                    $nodes = $this->getNodes($response, self::$model->class::XPATH_DESCRIPTION);
                     return $this->getDescriptionData($nodes);
 
                 } 
@@ -403,7 +319,7 @@ class Parser implements ParserInterface
                     && defined(self::$model->class . '::XPATH_ATTRIBUTE')
                     && self::$model->class::XPATH_ATTRIBUTE) {
 
-                    $nodes    = $this->getNodes($response, self::$model->class::XPATH_ATTRIBUTE);
+                    $nodes = $this->getNodes($response, self::$model->class::XPATH_ATTRIBUTE);
                     return $this->getAttributeData($nodes);
 
                 } 
@@ -411,7 +327,7 @@ class Parser implements ParserInterface
                     && defined(self::$model->class . '::XPATH_IMAGE')
                     && self::$model->class::XPATH_IMAGE) {
 
-                    $nodes    = $this->getNodes($response, self::$model->class::XPATH_IMAGE);
+                    $nodes = $this->getNodes($response, self::$model->class::XPATH_IMAGE);
                     return $this->getImageData($nodes);
 
                 } 
@@ -419,7 +335,7 @@ class Parser implements ParserInterface
                     && defined(self::$model->class . '::XPATH_PRICE')
                     && self::$model->class::XPATH_PRICE) {
 
-                    $nodes    = $this->getNodes($response, self::$model->class::XPATH_PRICE);
+                    $nodes = $this->getNodes($response, self::$model->class::XPATH_PRICE);
                     return $this->getPriceData($nodes);
 
                 }
@@ -432,13 +348,29 @@ class Parser implements ParserInterface
      */
     public function getNodes(string $response, string $xpathQuery)
     {
-        $dom                     = new \DOMDocument();
-        $dom->formatOutput       = true;
+        $dom = new \DOMDocument();
+        $dom->formatOutput = true;
         $dom->preserveWhiteSpace = false;
         @$dom->loadHTML($response);
 
+        if (self::$model->saleFlag === true) {
+            $addendum = ' and (
+                contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or
+                contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or
+                contains(translate(string(), \'СКИДК\', \'cкидк\'), \'cкидк\') or
+                contains(translate(string(), \'РАСПРОДАЖ\', \'распродаж\'), \'распродаж\')
+            )';
+            $explode  = rtrim($xpathQuery, ']');
+            $xpathQuery = $explode . $addendum . ']';
+        }
+
         $xpath = new \DOMXPath($dom);
         $nodes = $xpath->query($xpathQuery);
+        // $nodes = $xpath->query($xpathQuery);
+
+        // foreach ($nodes as $key => $node) {
+        //     # code...
+        // }
 
         return $nodes;
     }
@@ -523,6 +455,94 @@ class Parser implements ParserInterface
     public function getMaxQuantity()
     {
         return defined(self::$model->class . '::MAX_QUANTITY') ? self::$model->class::MAX_QUANTITY : false;
+    }
+
+
+    public function parseProducts()
+    {
+        $time = microtime(true);
+
+        $settler = new ParserSettler();
+
+        $dataWarnings = [];
+        $dataProducts = [];
+        $dataDetails  = [];
+
+        $warnings = $this->parse('warning', self::$model->url);
+
+        if (!$warnings) {
+
+            $page = 0;
+
+            while ($data = $this->parse('catalog', self::$model->url, $this->pageQuery($page, self::$model->url))) {
+                $last = end($dataProducts);
+                $page++;
+
+                // if ($last === end($data) || $page > self::$model->limitPage) {
+                // if ($last === end($data) || $page > 7) {
+                if ($last === end($data)) {
+                    break;
+                } else {
+                    foreach ($data as $product) {
+                        $dataProducts[] = $product;
+                    }
+                }
+            }
+
+            $productUrls = $settler->saveProducts($dataProducts, self::$model);
+
+        } else {
+
+            foreach ($warnings as $warning) {
+                $dataWarnings[] = $warning;
+            }
+
+        }
+
+        self::$model->warnings = $dataWarnings;
+        self::$model->products = $dataProducts;
+        self::$model->details  = $productUrls;            
+
+        $settler->logResults(self::$model, microtime(true) - $time);
+
+        if ($dataProducts) {
+            return count($dataProducts);
+        }
+    }
+
+    /**
+     * parseDetails() parses products' details
+     * @param array $products - products array with id-url pairs
+     * @return void
+     * TODO: integrate differentiated methods of parsing desc, attr, img to a single one
+     */
+    public function parseDetails(array $urlProducts = [])
+    {
+        $settler = new ParserSettler();
+
+        $detailsCount = 0;
+
+        $details = $urlProducts ? $urlProducts : self::$model->details;
+
+        foreach ($details as $id => $url) {
+            $detailsData = $this->parse('details', $url);
+
+            if (isset($detailsData['description']) && count($detailsData['description'])) {
+                $settler->saveDescriptions($detailsData['description'], (int)$id);
+            }
+            if (isset($detailsData['attribute']) && count($detailsData['attribute'])) {
+                $settler->saveAttributes($detailsData['attribute'], (int)$id);
+            }
+            if (isset($detailsData['image']) && count($detailsData['image'])) {
+                $settler->saveImages($detailsData['image'], (int)$id);
+            }
+
+            $detailsCount++;
+        }
+
+
+
+        return $detailsCount;
     }
 
 }

@@ -14,6 +14,12 @@ $this->title = 'Options Logs';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
+<style type="text/css">
+.container {
+    min-width: 98%;
+}
+</style>
+
 <div class="row">
     <div class="col-lg-8">
         <h1><?= Html::encode($this->title) ?></h1>
@@ -36,7 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'attribute' => 'url',
                 'value' => function($model){
-                    return Html::a('<i class="glyphicon glyphicon-share"></i>', $model->url, ['target' => '_blank']);
+                    return Html::a('<i class="glyphicon glyphicon-share"></i> ' . $model->url, $model->url, ['target' => '_blank']);
                 },
             ],
             'date',

@@ -56,7 +56,7 @@ class ParserProvisioner implements ParserProvisioningInterface
     {
         $sourceRegions = [];
         $regions       = Region::find()
-        // ->select(['category.id', 'category.title', 'cs.source_id as source'])
+            // ->select(['category.id', 'category.title', 'cs.source_id as source'])
             ->join('join', 'region_source rs', 'rs.region_id = region.id')
             ->where('rs.source_id = ' . $sourceId)
             ->distinct(true)
@@ -80,11 +80,11 @@ class ParserProvisioner implements ParserProvisioningInterface
         $categories = Category::find()
             ->select(['category.id as id', 'cs.id as csid', 'category.title', 'cs.source_url'])
             ->join('join', 'category_source cs', 'cs.category_id = category.id')
-            ->where('category.status = 1 AND cs.source_id = ' . $sourceId)
+            ->where('cs.nest_level = 0 AND cs.source_id = ' . $sourceId)
+            // ->where('category.status = 1 AND cs.source_id = ' . $sourceId)
             ->distinct(true)
             ->asArray()
             ->all();
-
 
         foreach ($categories as $category) {
             if ($category['source_url']) {

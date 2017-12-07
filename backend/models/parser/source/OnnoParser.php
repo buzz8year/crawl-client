@@ -167,18 +167,20 @@ class OnnoParser extends Parser implements ParserSourceInterface
     public function getImageData($object)
     {
         $data = [];
-        if ($object[0]->getElementsByTagName('a')->length) {
-            foreach ($node->getElementsByTagName('a') as $node) {
+        if ($object[0]) {
+            if ($object[0]->getElementsByTagName('a')->length) {
+                foreach ($node->getElementsByTagName('a') as $node) {
+                    $data[] = [
+                        'fullsize' => $node->getAttribute('href'),
+                        'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+                    ];
+                }
+            } else {
                 $data[] = [
-                    'fullsize' => $node->getAttribute('href'),
-                    'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+                    'fullsize' => $object[0]->getElementsByTagName('img')[0]->getAttribute('src'),
+                    'thumb'    => '',
                 ];
             }
-        } else {
-            $data[] = [
-                'fullsize' => $object[0]->getElementsByTagName('img')[0]->getAttribute('src'),
-                'thumb'    => '',
-            ];
         }
         return $data;
     }

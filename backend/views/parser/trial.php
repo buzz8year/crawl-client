@@ -55,16 +55,20 @@ echo Breadcrumbs::widget([
 
             <div class="form-group pull-left text-muted">
                 <?= Html::submitButton('Parse Goods', ['class' => 'btn btn-success', 'name' => 'parseGoods', 'value' => 1]) ?><br/><br/>
-                <small>Ограничение хождения по страницам товаров: 2</small><br/>
-                <small>Количество страниц каталога с товарами: 10</small>
+                <small><del>Ограничение хождения по страницам товаров: 2</del></small><br/>
+                <small><del>Количество страниц каталога с товарами: 10</del></small><br/><br/>
+                <label style="font-weight:normal">
+                    <?= Html::input('checkbox', 'parseSales', 1, ['style' => 'position:relative;top:1px', 'checked' => $model->saleFlag]) ?>
+                    Парсинг только акционных товаров
+                </label><br/><br/>
             </div>
 
             <div class="form-group pull-right text-right text-muted">
                 <?= Html::submitButton(
                         'Выгрузить в магазин', 
                         [
+                            'name'  => 'syncGoods', 
                             'class' => 'btn btn-primary', 
-                            'name' => 'syncGoods', 
                             'value' => 1, 
                             'disabled' => (bool)count($model->products),
                             'title' => (bool)count($model->products) ? 'У вас есть результаты парсинга, которые ожидают команды к детализации' : '',
@@ -75,6 +79,7 @@ echo Breadcrumbs::widget([
                     <small>Обработано: <?= $syncData['processed'] ?>, Синхронизировано: <?= $syncData['synced'] ?></small><br/>
                 <?php else: ?>
                     <small>Товаров: <?= count(Source::findOne($model->id)->products) ?></small><br/>
+                    <small>Несинх.: <?= count(Source::findOne($model->id)->asyncProducts) ?></small><br/>
                 <?php endif; ?>
             </div>
 
@@ -83,7 +88,8 @@ echo Breadcrumbs::widget([
                     <br/><br/>
                     <div class="col-xs-12">
 
-                        <h3>Найдено позиций: <?= count($model->products) ?></h3>
+                        <h3>Найдено новых позиций: <?= count($model->details) ?></h3>
+                        <small>Всего найдено: <?= count($model->products) ?></small>
                         <?php if (count($model->products)) : ?>
                             <div><?= Html::a('<i class="glyphicon glyphicon-share"></i> К просмотру товаров', ['product/index'], ['target' => '_blank']) ?></div><br/><br/>
                             <div class="form-group">
@@ -218,7 +224,7 @@ echo Breadcrumbs::widget([
                                     <?php endif; ?>
                                 </td> -->
                                 <td><strong  style="display:block; max-width: 20vw; overflow: hidden;"><?= $product['name'] ?></strong></td>
-                                <td width="10%">Цена: <?= $product['price'] ?></td>
+                                <!-- <td width="10%">Цена: <?= $product['price'] ?></td> -->
                                 <td><a href="<?= $product['href'] ?>" style="display:block; max-width: 30vw; overflow: hidden;"><?= $product['href'] ?></a></td>
                                 
                             </tr>
@@ -240,7 +246,7 @@ echo Breadcrumbs::widget([
 
                         <tr>
                             <td><span class="label label-primary">...</span></td>
-                            <td colspan="3"><?= Html::a('Еще товаров: ' . (count($model->products) - 10), ['product/index']) ?></td>
+                            <td colspan="2"><?= Html::a('Еще товаров: ' . (count($model->details) - 10), ['product/index']) ?></td>
                         </tr>
 
                         <?php break; ?>

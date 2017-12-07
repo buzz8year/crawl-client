@@ -16,6 +16,8 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = 'menu_id=';
     const QUERY_KEYWORD  = 'text=';
 
+    const QUERY_INSTOCK  = 'available=';
+
     const XPATH_WARNING = ''; // At Catalog/Search Page
     const XPATH_CATALOG = '//div[@data-list-id=\'main\']'; // At Catalog/Search Page
 
@@ -28,7 +30,8 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
+    // const DEFINE_CLIENT = 'phantom'; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
 
     static $region;
 
@@ -92,7 +95,10 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     {
         $data = [];
 
-        foreach ($nodes as $node) {
+        foreach ($nodes as $key => $node) {
+            // if ($key < 3) {
+            //     print_r($node);
+            // }
             $params = json_decode($node->getAttribute('data-params'), true);
             $href = $node->getElementsByTagName('a')[0]->getAttribute('href');
             if ($href) {
@@ -144,7 +150,7 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
         $page++;
         $pageQuery = '';
 
-        if (strpos($url, 'search') !== false) {
+        if (strpos($url, '?') !== false) {
             $pageQuery = '&p=';
         } else {
             $pageQuery = '?p=';
@@ -173,6 +179,7 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
             $url = self::$model->domain . '/' . self::ACTION_SEARCH . self::QUERY_KEYWORD . $keyword;
         }
 
+        // return $url . '?' . self::QUERY_INSTOCK . 1;
         return $url;
     }
 

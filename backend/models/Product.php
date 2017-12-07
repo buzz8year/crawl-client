@@ -99,7 +99,8 @@ class Product extends \yii\db\ActiveRecord
 
     public function getTopCategorySource()
     {   
-        if (isset($this->categorySource) && $this->categorySource->self_parent_id) {
+        // if (isset($this->categorySource) && $this->categorySource->self_parent_id) {
+        if (isset($this->categorySource)) {
             return $this->findTopCategorySource($this->categorySource);
         }
     }
@@ -112,6 +113,9 @@ class Product extends \yii\db\ActiveRecord
                 return $this->findTopCategorySource($parent);
             }
             return $parent;
+        } 
+        else {
+            return $categorySource;
         }
     }
 

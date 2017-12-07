@@ -8,23 +8,30 @@ use yii\widgets\ActiveForm;
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="proxy-form"><br/><br/>
+<div class="proxy-form row"><br/><br/>
 
     <?php $form = ActiveForm::begin(); ?>
+
+    <div class="col-sm-4">
 
     <?= $form->field($model, 'ip')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'port')->textInput() ?>
 
-    <?= $form->field($model, 'version')->dropDownList(['4' => 'IPv4', '6' => 'IPv6']) ?>
+    </div>
+    <div class="col-sm-4">
+
 
     <?= $form->field($model, 'login')->textInput() ?>
-
     <?= $form->field($model, 'password')->textInput() ?>
+    </div>
 
-    <br/><br/>
-    <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+    <div class="col-sm-4">
+    <?= $form->field($model, 'version')->dropDownList(['4' => 'IPv4', '4' => 'IPv6']) ?>
+    </div>
+
+    <div class="form-group col-sm-12"><br/><br/>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

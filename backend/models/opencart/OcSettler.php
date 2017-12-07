@@ -115,7 +115,7 @@ class OcSettler
         ];
 
         foreach ($products as $product) {
-            $productExist = $db->createCommand('SELECT * FROM oc_product_description WHERE name = ' . $db->quoteValue($product->title))->queryOne();
+            $productExist = $db->createCommand('SELECT * FROM oc_product_description WHERE source_url = ' . $db->quoteValue($product->source_url))->queryOne();
 
             if (!$productExist) {
                 $db->createCommand('
@@ -142,19 +142,6 @@ class OcSettler
 	            	)'
                 )->execute();
 
-                
-
-               //  if ($product->category) {
-               //      $db->createCommand('
-		            	// INSERT INTO oc_product_to_category (product_id, category_id, main_category)
-		            	// VALUES (
-		            	// 	"' . $insertedId . '",
-		            	// 	"' . $product->category->category_outer_id . '",
-		            	// 	1
-		            	// )'
-               //      )->execute();
-               //  }
-
                 if ($product->topCategory) {
                     $db->createCommand('
 		            	INSERT INTO oc_product_to_category (product_id, category_id, main_category)
@@ -172,6 +159,24 @@ class OcSettler
                 $product->save();
 
                 $data['synced']++;
+
+            } else {
+                $productCategoryExist = $db->createCommand('SELECT * FROM oc_product_to_category WHERE product_id = ' . $productExist['product_id'])->queryOne();
+                
+                if (!$productCategoryExist) {
+                    if ($product->topCategory || $product->topCategory) {
+                        $db->createCommand('
+                            INSERT INTO oc_product_to_category (product_id, category_id, main_category)
+                            VALUES (
+                                ' . $productExist['product_id'] . ',
+                                ' . $product->topCategory->category_outer_id . ',
+                                1
+                            )'
+                        )->execute();
+
+                        $data['synced']++;
+                    }
+                }
             }
 
             $data['processed']++;

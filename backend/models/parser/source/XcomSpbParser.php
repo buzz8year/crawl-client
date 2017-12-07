@@ -125,7 +125,7 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
             $data[] = [
                 'name'  => $title->textContent,
                 'price' => preg_replace('/[^0-9]/', '', $price),
-                'href'  => $title->getAttribute('href'),
+                'href'  => $this->processUrl($title->getAttribute('href')),
             ];
         }
 

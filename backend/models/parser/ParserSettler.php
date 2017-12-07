@@ -276,6 +276,8 @@ class ParserSettler implements ParserSettlingInterface
                         );
                     }
 
+                    $dataDetails[$newProduct->id] = $product['href'];
+
                 } else {
 
                     if ($productExist->track_price) {
@@ -287,9 +289,6 @@ class ParserSettler implements ParserSettlingInterface
                         $productExist->save();
                     }
                 }
-
-                $productId               = $productExist->id ?? $newProduct->id;
-                $dataDetails[$productId] = $product['href'];
             }
         }
 
