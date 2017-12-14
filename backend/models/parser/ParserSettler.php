@@ -261,9 +261,10 @@ class ParserSettler implements ParserSettlingInterface
                     $newProduct->price              = $product['price'];
                     $newProduct->title              = trim($product['name']);
 
-                    if (!$newProduct->save()) {
-                        throw new \Exception('
-                            Error attempting to save product of URL: ' .
+                    // if (!$newProduct->save()) {
+                    if (!$newProduct->save(false)) {
+                        throw new \Exception(
+                            'Error attempting to save product of URL: ' .
                             PHP_EOL . $product['href'] . PHP_EOL .
                             PHP_EOL . '$newProduct->source_id          = ' . $model->id .
                             PHP_EOL . '$newProduct->category_id        = ' . $model->categoryId .
@@ -302,19 +303,30 @@ class ParserSettler implements ParserSettlingInterface
     {
         foreach ($descriptionData as $desc) {
             if ($desc) {
-                $descExist = Description::find()->where(['product_id' => $productId, 'text_original' => $desc['text']])->one();
+                if ($text = trim($desc['text'])) {
+                    $descExist = Description::find()->where(['product_id' => $productId, 'text_original' => $text])->one();
 
-                // $synonym = SynonymaClient::synonymize($desc['text'], $dictionaries);
+                    // $synonym = SynonymaClient::synonymize($desc['text'], $dictionaries);
 
-                if (!$descExist) {
-                    $newDesc                = new Description();
-                    $newDesc->product_id    = $productId;
-                    $newDesc->title         = isset($desc['title']) ? trim($desc['title']) : '';
-                    $newDesc->text_original = trim($desc['text']);
-                    // $newDesc->text_synonymized = $synonym;
-                    // $newDesc->status = $synonym ? 1 : 0;
+                    if (!$descExist) {
+                        $newDesc                = new Description();
+                        $newDesc->product_id    = $productId;
+                        $newDesc->title         = isset($desc['title']) ? trim($desc['title']) : '';
+                        $newDesc->text_original = $text;
+                        // $newDesc->text_synonymized = $synonym;
+                        // $newDesc->status = $synonym ? 1 : 0;
 
-                    $newDesc->save();
+                        
+                        // $newDesc->save();
+                        if (!$newDesc->save()) {
+                            throw new \Exception('
+                                Error attempting to save product image: ' .
+                                PHP_EOL . '$newDesc->text_original        = ' . $newDesc->text_original .
+                                PHP_EOL . '$newDesc->title   = ' . $newDesc->title .
+                                PHP_EOL . '$newDesc->product_id = ' . $newDesc->product_id
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -326,7 +338,7 @@ class ParserSettler implements ParserSettlingInterface
     public function saveAttributes(array $attributeData, int $productId)
     {
         foreach ($attributeData as $attribute) {
-            if ($attribute) {
+            if ($attribute && $attribute['title'] && $attribute['value']) {
 
                 $attributeExist = Attribute::find()->where(['title' => $attribute['title']])->one();
 
@@ -337,29 +349,44 @@ class ParserSettler implements ParserSettlingInterface
                 }
 
                 $valueExist = AttributeValue::find()->where([
-                    'attribute_id' => $attributeExist->id ?? $newAttribute->id,
+                    'attribute_id' => $attributeExist ? $attributeExist->id : $newAttribute->id,
                     'value'        => trim($attribute['value']),
                 ])->one();
 
                 if (!$valueExist) {
                     $newValue               = new AttributeValue();
-                    $newValue->attribute_id = $attributeExist->id ?? $newAttribute->id;
+                    $newValue->attribute_id = $attributeExist ? $attributeExist->id : $newAttribute->id;
                     $newValue->value        = trim($attribute['value']);
-                    $newValue->save();
+                    // $newValue->save();
+                    if (!$newValue->save()) {
+                        throw new \Exception('
+                            Error attempting to save product image: ' .
+                            PHP_EOL . '$newValue->attribute_id        = ' . $attributeExist ? $attributeExist->id : $newAttribute->id .
+                            PHP_EOL . '$newValue->value   = ' . $newValue->value
+                        );
+                    }
                 }
 
                 $productAttributeExist = ProductAttribute::find()->where([
                     'product_id'         => $productId,
-                    'attribute_id'       => $valueExist->attribute_id ?? $newValue->attribute_id,
-                    'attribute_value_id' => $valueExist->id ?? $newValue->id,
+                    'attribute_id'       => $valueExist ? $valueExist->attribute_id : $newValue->attribute_id,
+                    'attribute_value_id' => $valueExist ? $valueExist->id : $newValue->id,
                 ])->one();
 
                 if (!$productAttributeExist) {
                     $newProductAttribute                     = new ProductAttribute();
                     $newProductAttribute->product_id         = $productId;
-                    $newProductAttribute->attribute_id       = $attributeExist->id ?? $newAttribute->id;
-                    $newProductAttribute->attribute_value_id = $valueExist->id ?? $newValue->id;
-                    $newProductAttribute->save();
+                    $newProductAttribute->attribute_id       = $attributeExist ? $attributeExist->id : $newAttribute->id;
+                    $newProductAttribute->attribute_value_id = $valueExist ? $valueExist->id : $newValue->id;
+                    // $newProductAttribute->save();
+                    if (!$newProductAttribute->save()) {
+                        throw new \Exception('
+                            Error attempting to save product image: ' .
+                            PHP_EOL . '$newProductAttribute->attribute_id        = ' . $newProductAttribute->attribute_id .
+                            PHP_EOL . '$newProductAttribute->attribute_value_id   = ' . $newProductAttribute->attribute_value_id .
+                            PHP_EOL . '$newProductAttribute->product_id = ' . $newProductAttribute->product_id
+                        );
+                    }
                 }
             }
         }

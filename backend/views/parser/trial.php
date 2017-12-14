@@ -224,7 +224,7 @@ echo Breadcrumbs::widget([
                                     <?php endif; ?>
                                 </td> -->
                                 <td><strong  style="display:block; max-width: 20vw; overflow: hidden;"><?= $product['name'] ?></strong></td>
-                                <!-- <td width="10%">Цена: <?= $product['price'] ?></td> -->
+                                <td width="10%">Цена: <?= $product['price'] ? $product['price'] : '' ?></td>
                                 <td><a href="<?= $product['href'] ?>" style="display:block; max-width: 30vw; overflow: hidden;"><?= $product['href'] ?></a></td>
                                 
                             </tr>
@@ -246,7 +246,7 @@ echo Breadcrumbs::widget([
 
                         <tr>
                             <td><span class="label label-primary">...</span></td>
-                            <td colspan="2"><?= Html::a('Еще товаров: ' . (count($model->details) - 10), ['product/index']) ?></td>
+                            <td colspan="3"><?= Html::a('Еще товаров: ' . (count($model->details) - 10), ['product/index']) ?></td>
                         </tr>
 
                         <?php break; ?>

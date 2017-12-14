@@ -20,95 +20,66 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
 
     const XPATH_SUPER = '//notelement'; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//div//span[contains(@style, \'color:silver\')]'; // At Product Page
-    const XPATH_DESCRIPTION = '//div[contains(@class, \'yashare-auto-init\')]'; // At Product Page
+    const XPATH_DESCRIPTION   = '//div[contains(@style, \'border-top: 1px solid silver\')]'; // At Product Page
+    // const XPATH_DESCRIPTION = '//div[contains(@class, \'yashare-auto-init\')]'; // At Product Page
     const XPATH_IMAGE = '//a[@data-lightbox]'; // At Product Page. Full size.
 
-    const LEVEL_ONE_CATEGORY_NODE    = '//*[contains(@class, \'sidebar_menu_header\')]//*[@href]'; // At HomePage sidebar
-    const LEVEL_TWO_CATEGORY_NODE    = '//*[contains(@class, \'data\')]//*[@href]'; // At Level One Category Page breadcrumb
-    const LEVEL_THREE_CATEGORY_NODE  = '//*[contains(@class, \'data\')]//*[@href]'; // At Level Two Category Page breadcrumb
+    const LEVEL_ONE_CATEGORY_NODE    = '//td[contains(@class, \'tbg1\')]//a[not(contains(@href, \'://\'))]'; // At HomePage sidebar
 
     const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
 
     public function parseCategories()
     {
-        $response      = $this->curlSession(self::$model->domain);
-        $levelOneNodes = $this->getNodes($response, self::LEVEL_ONE_CATEGORY_NODE);
+        $response = $this->curlSession(self::$model->domain);
+        $links = $this->getNodes($response, self::LEVEL_ONE_CATEGORY_NODE);
 
         $data = [];
+        $tempData = [];
 
-        // LEVEL ONE Categories
+        foreach ($links as $link) {
+            $tempData[] = $link;
+        }
 
-        foreach ($levelOneNodes as $tempKey => $nodeOne) {
-            if ( substr ( $nodeOne->getAttribute('href') , 0 , 1 ) == '/' ) {
-                $hrefOneExplode = explode('/', $nodeOne->getAttribute('href'));
-                $levelOneData = [
+        foreach ($tempData as $keyOne => $linkOne) {
+            if ($linkOne->parentNode->nodeName == 'div') {
+                $data[] = [
+                    'key' => $keyOne,
+                    'alias' => '',
                     'dump'  => '',
-                    'href'  => self::$model->domain . $nodeOne->getAttribute('href'),
-                    'alias' => $hrefOneExplode[2],
                     'csid'  => '',
-                    'title' => trim($nodeOne->textContent),
+                    'href'  => $this->processUrl($linkOne->getAttribute('href')),
+                    'title' => trim($linkOne->textContent),
+                    'nest_level'  => 0,
                 ];
+            }
+        }
 
-                $responseCategory = $this->curlSession($levelOneData['href']);
-                $levelTwoNodes    = $this->getNodes($responseCategory, self::LEVEL_TWO_CATEGORY_NODE);
+        foreach ($data as $key => $parent) {
+            foreach ($tempData as $keyTwo => $linkTwo) {
 
-                // LEVEL TWO Categories
-
-                foreach ($levelTwoNodes as $nodeTwo) {
-                    $levelTwoData = [
-                        'dump'  => '',
-                        'href'  => self::$model->domain . $nodeTwo->getAttribute('href'),
-                        'alias' => $hrefOneExplode[2],
-                        'csid'  => '',
-                        'title' => $levelOneData['title'] . " > " . trim($nodeTwo->textContent),
-                    ];
-
-                    $responseSubCategory = $this->curlSession($levelTwoData['href']);
-                    $levelThreeNodes     = $this->getNodes($responseSubCategory, self::LEVEL_THREE_CATEGORY_NODE);
-
-                    // LEVEL THREE Categories
-
-                    foreach ($levelThreeNodes as $nodeThree) {
-                        if ( $nodeThree->parentNode->parentNode->getElementsByTagName('p')->length == 2 )
-                            break;
-                        
-                        $levelThreeData = [
+                if ($linkTwo->parentNode->nodeName == 'li'
+                    && $keyTwo > $data[$key]['key']
+                    && (isset($data[$key + 1]) ? ($keyTwo < $data[$key + 1]['key']) : true) ) 
+                {
+                        $data[$key]['children'][] = [
+                            'alias' => '',
                             'dump'  => '',
-                            'href'  => self::$model->domain . $nodeThree->getAttribute('href'),
-                            'alias' => $hrefOneExplode[2],
                             'csid'  => '',
-                            'title' => $levelOneData['title'] . " > " . $levelTwoData['title'] . " > " . trim($nodeThree->textContent),
+                            'href'  => $this->processUrl($linkTwo->getAttribute('href')),
+                            'title' => trim($linkTwo->textContent),
+                            'nest_level'  => 1,
                         ];
-
-                        // LEVEL THREE Nesting
-
-                        if ($levelTwoData && $levelThreeData && $levelTwoData['href'] != $levelThreeData['href']) {
-                            $levelTwoData['children'][] = $levelThreeData;
-                        }
-                    }
-
-                    // LEVEL TWO Nesting
-
-                    $levelOneData['children'][] = $levelTwoData;
                 }
             }
-            // LEVEL ONE Nesting
-
-            $data[] = $levelOneData;
-
-            if ($tempKey == 2) {
-                break;
-            }
-            // Do not forget to REMOVE
         }
+
         return $data;
     }
 
     /**
      * @return array
      */
-
     public function getWarningData(\DOMNodeList $nodes)
     {
         foreach ($nodes as $node) {
@@ -122,8 +93,8 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
@@ -170,21 +141,20 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
     public function getDescriptionData($object)
     {
         $data = [];
-        if (isset($object->Description)) {
-            foreach ($object->Description->Blocks as $descScope) {
-                $data[] = [
-                    'title' => $descScope->Title,
-                    'text'  => $descScope->Text,
-                ];
+        foreach ($object as $node) {
+            $innerHTML = '';
+            $children = $node->childNodes;
+            foreach ($children as $child) {
+                $innerHTML .= $child->ownerDocument->saveXML( $child );
             }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => '',
-                    'text'  => trim($node->getAttribute('data-yashareDescription')),
-                ];
-            }
+            $data[] = [
+                'title' => '',
+                'text'  => $innerHTML,
+            ];
         }
+        // return $data;
+
+
         return $data;
     }
 
@@ -195,20 +165,11 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
     public function getAttributeData($object)
     {
         $data = [];
-        if (isset($object->Capabilities)) {
-            foreach ($object->Capabilities->Capabilities as $attrScope) {
-                $data[] = [
-                    'title' => $attrScope->Name,
-                    'value' => is_string($attrScope->Value) ? $attrScope->Value : $attrScope->Value[0]->Text,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => trim($node->textContent),
-                    'value' => trim($node->parentNode->getElementsByTagName('span')[1]->textContent),
-                ];
-            }
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => trim($node->textContent),
+                'value' => trim($node->parentNode->getElementsByTagName('span')[1]->textContent),
+            ];
         }
         return $data;
     }
@@ -220,27 +181,25 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
     public function getImageData($object)
     {
         $data = [];
-        if (isset($object->Gallery)) {
-            foreach ($object->Gallery->Groups[0]->Elements as $imageScope) {
-                $data[] = [
-                    'fullsize' => $imageScope->Original,
-                    'thumb'    => $imageScope->Preview,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'fullsize' => trim($node->getAttribute('href')),
-                    'thumb'    => '',
-                ];
-            }
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $node->getAttribute('href'),
+                'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+            ];
         }
         return $data;
     }
 
     public function pageQuery(int $page, string $url)
     {
-        $pageQuery = '&page=';
+        $page++;
+        $pageQuery = '';
+
+        if (strpos($url, '?') !== false) {
+            $pageQuery = '&page=';
+        } else {
+            $pageQuery = '?page=';
+        }
         return $page > 0 ? $pageQuery . $page : '';
     }
 

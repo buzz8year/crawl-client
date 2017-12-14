@@ -90,11 +90,31 @@ class OnnoParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and (contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or .//div[contains(@class, \'catalogItemPriceOld\')])';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {
@@ -169,7 +189,7 @@ class OnnoParser extends Parser implements ParserSourceInterface
         $data = [];
         if ($object[0]) {
             if ($object[0]->getElementsByTagName('a')->length) {
-                foreach ($node->getElementsByTagName('a') as $node) {
+                foreach ($object[0]->getElementsByTagName('a') as $node) {
                     $data[] = [
                         'fullsize' => $node->getAttribute('href'),
                         'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),

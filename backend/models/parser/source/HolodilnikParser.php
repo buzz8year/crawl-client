@@ -96,11 +96,31 @@ class HolodilnikParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and (contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or .//div[@class=\'super_price\'])';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
@@ -113,11 +133,13 @@ class HolodilnikParser extends Parser implements ParserSourceInterface
                     $price = preg_replace('/[^0-9]/', '', $child->textContent);
                 }
             }
-            $data[] = [
-                'price' => $price,
-                'name'  => $title->textContent,
-                'href'  => self::$model->domain . $title->getAttribute('href'),
-            ];
+            if ($price) {
+                $data[] = [
+                    'price' => $price,
+                    'name'  => $title->textContent,
+                    'href'  => self::$model->domain . $title->getAttribute('href'),
+                ];
+            }
         }
 
         return $data;

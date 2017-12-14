@@ -95,7 +95,8 @@ interface ParserSourceInterface
      * @param DOMNodeList object $nodes parsed elements of product items.
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes);
+    // public function getProducts(\DOMNodeList $nodes);
+    public function getProducts($nodes);
 
     /**
      * Извлекает и структурирует данные (для передачи в методы описанные ниже) из объекта-результата парсинга объекта со всей

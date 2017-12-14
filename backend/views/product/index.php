@@ -5,6 +5,7 @@ use yii\grid\GridView;
 use backend\models\Source;
 use backend\models\Category;
 use backend\models\Keyword;
+use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\models\search\ProductSearch */
@@ -25,9 +26,29 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
-    <p>
-        <?= Html::a('Create Product', ['create'], ['class' => 'btn btn-success']) ?>
-    </p><br/><br/>
+    <div class="form-group pull-right text-right">
+        <?php ActiveForm::begin();?>
+            <?= Html::submitButton('Удалить все товары', [
+                'class' => 'btn btn-danger', 
+                'name' => 'deleteGoods', 
+                'value' => 1,
+                'onclick' => 'if (!confirm(\'Еще раз, удалить все товары?\')) { return false; }'
+            ]) ?>
+        <?php ActiveForm::end();?>
+    </div>
+
+    <div class="form-group pull-right text-right">
+        <?php ActiveForm::begin();?>
+            <?= Html::submitButton('Выгрузить все товары в магазин', ['class' => 'btn btn-primary', 'name' => 'syncGoods', 'value' => 1]) ?>  &nbsp;  &nbsp;
+        <?php ActiveForm::end();?>
+        <?php if ($syncData) : ?>
+            <span style="position:relative;top:20px">Обработано: <b><?= $syncData['processed'] ?></b>, Синхронизировано: <b><?= $syncData['synced'] ?></b></span><br/>
+        <?php endif; ?>
+    </div>
+
+
+
+    <?= Html::a('Create Product', ['create'], ['class' => 'btn btn-success']) ?><br/><br/>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

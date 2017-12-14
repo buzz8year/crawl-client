@@ -20,9 +20,9 @@ class KeyParser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//div[@class=\'catalog-goods__image-view_item-inner\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//div[@class=\'catalog_object_characteristics_item\']'; // At Product Page
+    const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']'; // At Product Page
+    const XPATH_IMAGE       = '//div[@data-bigphoto]'; // At Product Page. Full size.
 
     const CATEGORY_NODE  = '//div[@class=\'catalog_pid_block_cont\']'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
@@ -83,11 +83,30 @@ class KeyParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//span[contains(@class, \'rouble-price strike\')]';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {
@@ -104,7 +123,7 @@ class KeyParser extends Parser implements ParserSourceInterface
             $data[] = [
                 'price' => $price ?? null,
                 'name'  => $title->textContent,
-                'href'  => $title->getAttribute('href'),
+                'href'  => $this->processUrl($title->getAttribute('href')),
             ];
         }
 
@@ -125,6 +144,14 @@ class KeyParser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
+        }
+        return $data;
     }
 
     /**
@@ -133,6 +160,14 @@ class KeyParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            if ($node->getElementsByTagName('div') && $node->getElementsByTagName('div')->length == 2) {
+                $data[$key]['title'] = $node->getElementsByTagName('div')[0]->textContent;
+                $data[$key]['value'] = $node->getElementsByTagName('div')[1]->textContent;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -141,6 +176,14 @@ class KeyParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $this->processUrl($node->getAttribute('data-bigphoto')),
+                'thumb'    => $this->processUrl($node->getAttribute('data-preview'))//div[@id=\'description\'],
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url)
@@ -154,6 +197,7 @@ class KeyParser extends Parser implements ParserSourceInterface
             $pageQuery = '?p=';
         }
 
+        // return $pageQuery . $page;
         return $page > 1 ? $pageQuery . $page : '';
     }
 

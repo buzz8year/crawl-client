@@ -21,9 +21,12 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//*[@class=\'item\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = '//*[contains(@class, \'item-description-text\')]'; // At Product Page
-    const XPATH_IMAGE       = '//*[contains(@class, \'gallery-extended-img-frame\')]'; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//tr[contains(@class, \'short_desc\')]'; // At Product Page
+    const XPATH_DESCRIPTION = '//tr[contains(@class, \'wide_desc\')]'; // At Product Page
+    const XPATH_IMAGE       = '//div[@id=\'card\']/table//td[@id=\'left_column\']//img'; // At Product Page. Full size.
+
+    const IMAGE_SIZE = 500;
+    const THUMB_SIZE = 60;
 
     const CATEGORY_NODE  = '//*[contains(@id, \'sitemap\')]/*[contains(@class, \'level\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
@@ -72,9 +75,9 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
                 'nest_level' => $nestLevel,
             ];
 
-            // if ($key == 200) {
-            //     break;
-            // }
+            if ($key == 400) {
+                break;
+            }
         }
 
         $tree = $this->nestCategories($data);
@@ -109,7 +112,8 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
@@ -147,20 +151,11 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
     public function getDescriptionData($object)
     {
         $data = [];
-        if (isset($object->Description)) {
-            foreach ($object->Description->Blocks as $descScope) {
-                $data[] = [
-                    'title' => $descScope->Title,
-                    'text'  => $descScope->Text,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => '',
-                    'text'  => $node->textContent,
-                ];
-            }
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
         }
         return $data;
     }
@@ -171,6 +166,14 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $tr) {
+            if ($tr->getElementsByTagName('td') && $tr->getElementsByTagName('td')->length == 2) {
+                $data[$key]['title'] = $tr->getElementsByTagName('td')[0]->textContent;
+                $data[$key]['value'] = $tr->getElementsByTagName('td')[1]->textContent;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -180,19 +183,15 @@ class XcomSpbParser extends Parser implements ParserSourceInterface
     public function getImageData($object)
     {
         $data = [];
-        if (isset($object->Gallery)) {
-            foreach ($object->Gallery->Groups[0]->Elements as $imageScope) {
-                $data[] = [
-                    'fullsize' => $imageScope->Original,
-                    'thumb'    => $imageScope->Preview,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'fullsize' => $node->getAttribute('data-url'),
-                    'thumb'    => '',
-                ];
+        foreach ($object as $node) {
+            if ($node->getAttribute('src')) {
+                $exp = explode('_', $node->getAttribute('src'));
+                if (isset($exp[0])) {
+                    $data[] = [
+                        'fullsize' => $exp[0] . '_500.jpg',
+                        'thumb'    => $exp[0] . '_60.jpg',
+                    ];
+                }
             }
         }
         return $data;

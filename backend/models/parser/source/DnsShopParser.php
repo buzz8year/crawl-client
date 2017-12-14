@@ -22,12 +22,14 @@ class DnsShopParser extends Parser implements ParserSourceInterface
     const QUERY_KEYWORD  = 'q=';
 
     const XPATH_WARNING = ''; // At Catalog/Search Page
-    const XPATH_CATALOG = '//div[@data-id=\'product\']'; // At Product Page
+    // const XPATH_CATALOG = '//div[@data-id=\'product\']'; // At Product Page
+    const XPATH_CATALOG = '//div[(@data-id=\'catalog-item\' or @data-id=\'product\')]'; // At Product Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = '//*[contains(@class, \'item-description-text\')]'; // At Product Page
-    const XPATH_IMAGE       = '//*[contains(@class, \'gallery-extended-img-frame\')]'; // At Product Page. Full size.
+    // const XPATH_ATTRIBUTE   = '//div[@id=\'characteristics\']//tr'; // At Product Page
+    const XPATH_ATTRIBUTE   = '//div[@id=\'main-characteristics\']//tr'; // At Product Page
+    const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']/p'; // At Product Page
+    const XPATH_IMAGE       = '//a[@data-fancybox-group=\'itemGroupThumbs\' and not(contains(@class, \'video\'))]'; // At Product Page. Full size.
 
     // const LEVEL_ONE_CATEGORY_NODE  = '//*[contains(@class, \'catalog-subcatalog\')]'; // At HomePage navmenu
     const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
@@ -97,11 +99,32 @@ class DnsShopParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//div[@class=\'previous-price\']';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
@@ -139,20 +162,11 @@ class DnsShopParser extends Parser implements ParserSourceInterface
     public function getDescriptionData($object)
     {
         $data = [];
-        if (isset($object->Description)) {
-            foreach ($object->Description->Blocks as $descScope) {
-                $data[] = [
-                    'title' => $descScope->Title,
-                    'text'  => $descScope->Text,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => '',
-                    'text'  => $node->textContent,
-                ];
-            }
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
         }
         return $data;
     }
@@ -163,6 +177,14 @@ class DnsShopParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $tr) {
+            if ($tr->getElementsByTagName('td') && $tr->getElementsByTagName('td')->length == 2) {
+                $data[$key]['title'] = $tr->getElementsByTagName('td')[0]->getElementsByTagName('div')[0]->textContent;
+                $data[$key]['value'] = $tr->getElementsByTagName('td')[1]->textContent;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -172,20 +194,11 @@ class DnsShopParser extends Parser implements ParserSourceInterface
     public function getImageData($object)
     {
         $data = [];
-        if (isset($object->Gallery)) {
-            foreach ($object->Gallery->Groups[0]->Elements as $imageScope) {
-                $data[] = [
-                    'fullsize' => $imageScope->Original,
-                    'thumb'    => $imageScope->Preview,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'fullsize' => $node->getAttribute('data-url'),
-                    'thumb'    => '',
-                ];
-            }
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $node->getAttribute('href'),
+                'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+            ];
         }
         return $data;
     }

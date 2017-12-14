@@ -65,15 +65,18 @@ class VoltParser extends Parser implements ParserSourceInterface
                             if ($child->parentNode === $ul) {
                                 foreach ($child->getElementsByTagName('a') as $i => $link) {
                                     if ($i > 0) {
-                                        $alias = explode('catalog/', $link->getAttribute('href'))[1];
-                                        $data[$key]['children'][] = [
-                                            'csid'       => '',
-                                            'dump'       => '',
-                                            'alias'      => preg_match('/[a-z]/i', $alias) ? trim($alias, '/') : '',
-                                            'href'       => $link->getAttribute('href'),
-                                            'title'      => trim($link->textContent),
-                                            'nest_level' => 1,
-                                        ];
+                                        $exp = explode('catalog/', $link->getAttribute('href'));
+                                        if (isset($exp[1])) {
+                                            $alias = $exp[1];
+                                            $data[$key]['children'][] = [
+                                                'csid'       => '',
+                                                'dump'       => '',
+                                                'alias'      => preg_match('/[a-z]/i', $alias) ? trim($alias, '/') : '',
+                                                'href'       => $link->getAttribute('href'),
+                                                'title'      => trim($link->textContent),
+                                                'nest_level' => 1,
+                                            ];
+                                        }
                                     }
                                 }
                             }
@@ -99,7 +102,8 @@ class VoltParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {

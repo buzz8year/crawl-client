@@ -127,7 +127,8 @@ class LitresParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {

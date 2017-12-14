@@ -9,6 +9,7 @@ use JonnyW\PhantomJs\Client as Phantom;
 use Yii;
 use yii\base\DynamicModel;
 
+
 /**
  * Parser prepares the ground for & implements parsing works feeding a specific parser class related to the source.
  */
@@ -24,10 +25,17 @@ class Parser implements ParserInterface
     static $client;
 
 
+
+    /**
+     * @return function result (array)
+     */
     public function syncProducts()
     {
         return OcSettler::saveProducts(self::$model->id);
     }
+
+
+
 
     /**
      * @return object
@@ -67,7 +75,85 @@ class Parser implements ParserInterface
         return $model;
     }
 
-    /***/
+
+
+    /**
+     * @return void
+     */
+    public function setOptions()
+    {
+        $random  = self::$agents ? rand(0, count(self::$agents) - 1) : null;
+        $agent   = self::$agents[$random] ?? [];
+        $options = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => self::$model->class::CURL_FOLLOW,
+            CURLOPT_PROXY          => self::$proxies[0]['address'] ?? null,
+            CURLOPT_PROXYUSERPWD   => self::$proxies[0]['password'] ?? null,
+            CURLOPT_HTTPHEADER     => self::$agents[0] ?? [],
+        ];
+
+        self::$options = $options;
+    }
+
+
+
+    /**
+     * @return void
+     */
+    public function setProxies()
+    {
+        self::$proxies = self::$source->getProxies()['ipv4'] ?? [];
+    }
+
+
+    /**
+     * @return void
+     */
+    public function setAgents()
+    {
+        self::$agents = self::$source->getHeaderValues()['user-agent'] ?? [];
+    }
+
+
+
+
+    /**
+     * @return void
+     */
+    public function setClient(string $client = null)
+    {
+        $constClient           = defined(self::$model->class . '::DEFINE_CLIENT') ? self::$model->class::DEFINE_CLIENT : 'curl';
+        self::$client['alias'] = $client ?? $constClient;
+    }
+
+
+
+
+    /**
+     * @return string
+     */
+    public function getClientAlias()
+    {
+        $constClient = defined(self::$model->class . '::DEFINE_CLIENT') ? self::$model->class::DEFINE_CLIENT : 'curl';
+        return self::$client['alias'] ?? $constClient;
+    }
+
+
+
+    /**
+     * @return int or bool
+     */
+    public function getMaxQuantity()
+    {
+        return defined(self::$model->class . '::MAX_QUANTITY') ? self::$model->class::MAX_QUANTITY : false;
+    }
+
+
+
+
+    /**
+     * @return string
+     */
     public function sessionClient(string $url)
     {
         switch (self::$client['alias']) {
@@ -87,6 +173,9 @@ class Parser implements ParserInterface
                 // throw new \Exception('Ошибка подключения клиента');
         }
     }
+
+
+
 
     /**
      * curlSession() function utilizes self::$options, and establishes a curl session based on them.
@@ -136,6 +225,9 @@ class Parser implements ParserInterface
         }
     }
 
+
+
+
     /**
      * phantomSession() function utilizes self::$options, and establishes a curl session based on them.
      *
@@ -168,6 +260,10 @@ class Parser implements ParserInterface
         return $response->getContent();
     }
 
+
+
+
+
     /**
      * processFail() logs fails to history, shifts agent and proxy arrays and resets curl options
      *
@@ -195,6 +291,10 @@ class Parser implements ParserInterface
         $this->setOptions();
     }
 
+
+
+
+
     /**
      * parse() function determines the "type" of parsing needed, and further related processing, recieved from curl request.
      * IMPORTANT: curlSession() needs to be called separately for every "type" condition, since we need to recreate the "options" for the session,
@@ -211,13 +311,14 @@ class Parser implements ParserInterface
             && defined(self::$model->class . '::XPATH_WARNING')
             && self::$model->class::XPATH_WARNING) {
 
-            $response = $this->sessionClient($url);
-            $nodes    = $this->getNodes($response, self::$model->class::XPATH_WARNING);
-            if ($nodes->length) {
-                return $this->getWarningData($nodes);
-            }
+                $response = $this->sessionClient($url);
+                $nodes    = $this->getNodes($response, self::$model->class::XPATH_WARNING);
+                if ($nodes->length) {
+                    return $this->getWarningData($nodes);
+                }
+        } 
 
-        } elseif ($type == 'catalog'
+        elseif ($type == 'catalog'
             && defined(self::$model->class . '::XPATH_CATALOG')
             && self::$model->class::XPATH_CATALOG) {
 
@@ -239,11 +340,25 @@ class Parser implements ParserInterface
                 }
             }
 
-            if ($response) {
-                $nodes = $this->getNodes($response, $xpath);
-                if ($nodes->length) {
-                    return $this->getProducts($nodes);
+            // SALE: Sale flag
+            $xpathSale = '';
+            if (self::$model->saleFlag === true) {
+                if (method_exists(self::$model->class, 'xpathSale')) {
+                    $xpathSale = self::$model->class::xpathSale($xpath);
                 } 
+                // else {
+                //     return;
+                // }
+            }
+
+            if ($response) {
+                $nodes = $this->getNodes($response, $xpath, $xpathSale);
+                if (isset($nodes->length) && $nodes->length) {
+                    return $this->getProducts($nodes);
+                }
+                elseif ($nodes === true) {
+                    return [[]];
+                }
             }
             
             // else {
@@ -300,8 +415,8 @@ class Parser implements ParserInterface
                         $data['image'] = $this->getImageData($imgNodes);
                     }
                     if (defined(self::$model->class . '::XPATH_PRICE') && self::$model->class::XPATH_PRICE) {
-                        $pricePodes = $this->getNodes($response, self::$model->class::XPATH_PRICE);
-                        $data['price'] = $this->getPriceData($pricePodes);
+                        $priceNodes = $this->getNodes($response, self::$model->class::XPATH_PRICE);
+                        $data['price'] = $this->getPriceData($priceNodes);
                     }
 
                     return $data;
@@ -343,37 +458,43 @@ class Parser implements ParserInterface
         }
     }
 
+
+
+
+
+
     /**
      * @return object, instance of DOMXpath 
      */
-    public function getNodes(string $response, string $xpathQuery)
+    // public function getNodes(string $response, string $xpathQuery)
+    public function getNodes(string $response, string $xpathQuery, string $xpathSale = '')
     {
         $dom = new \DOMDocument();
         $dom->formatOutput = true;
         $dom->preserveWhiteSpace = false;
         @$dom->loadHTML($response);
 
-        if (self::$model->saleFlag === true) {
-            $addendum = ' and (
-                contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or
-                contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or
-                contains(translate(string(), \'СКИДК\', \'cкидк\'), \'cкидк\') or
-                contains(translate(string(), \'РАСПРОДАЖ\', \'распродаж\'), \'распродаж\')
-            )';
-            $explode  = rtrim($xpathQuery, ']');
-            $xpathQuery = $explode . $addendum . ']';
-        }
-
         $xpath = new \DOMXPath($dom);
         $nodes = $xpath->query($xpathQuery);
-        // $nodes = $xpath->query($xpathQuery);
 
-        // foreach ($nodes as $key => $node) {
-        //     # code...
-        // }
-
-        return $nodes;
+        // return $nodes;
+        if (!$xpathSale) {
+            return $nodes;
+        }
+        else {
+            $sales = $xpath->query($xpathSale);
+            if ($sales->length) {
+                return $sales;
+            }
+            elseif ($nodes->length) {
+                return true;
+            }
+        }
     }
+
+
+
+
 
     /**
      * @return string
@@ -402,62 +523,13 @@ class Parser implements ParserInterface
         return $url;
     }
 
-    /**
-     * @return void
-     */
-    public function setOptions()
-    {
-        $random  = self::$agents ? rand(0, count(self::$agents) - 1) : null;
-        $agent   = self::$agents[$random] ?? [];
-        $options = [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => self::$model->class::CURL_FOLLOW,
-            CURLOPT_PROXY          => self::$proxies[0]['address'] ?? null,
-            CURLOPT_PROXYUSERPWD   => self::$proxies[0]['password'] ?? null,
-            CURLOPT_HTTPHEADER     => self::$agents[0] ?? [],
-        ];
 
-        self::$options = $options;
-    }
+
+
 
     /**
-     * @return void
+     * @return int
      */
-    public function setProxies()
-    {
-        self::$proxies = self::$source->getProxies()['ipv4'] ?? [];
-    }
-
-    /**
-     * @return void
-     */
-    public function setAgents()
-    {
-        self::$agents = self::$source->getHeaderValues()['user-agent'] ?? [];
-    }
-
-    /**
-     * @return void
-     */
-    public function setClient(string $client = null)
-    {
-        $constClient           = defined(self::$model->class . '::DEFINE_CLIENT') ? self::$model->class::DEFINE_CLIENT : 'curl';
-        self::$client['alias'] = $client ?? $constClient;
-    }
-
-    /***/
-    public function getClientAlias()
-    {
-        $constClient = defined(self::$model->class . '::DEFINE_CLIENT') ? self::$model->class::DEFINE_CLIENT : 'curl';
-        return self::$client['alias'] ?? $constClient;
-    }
-
-    public function getMaxQuantity()
-    {
-        return defined(self::$model->class . '::MAX_QUANTITY') ? self::$model->class::MAX_QUANTITY : false;
-    }
-
-
     public function parseProducts()
     {
         $time = microtime(true);
@@ -470,34 +542,41 @@ class Parser implements ParserInterface
 
         $warnings = $this->parse('warning', self::$model->url);
 
-        if (!$warnings) {
+        // if (!$warnings) {
 
+            $excuse = defined(self::$model->class . '::PAGER_EXCUSE') && self::$model->class::PAGER_EXCUSE;
             $page = 0;
 
             while ($data = $this->parse('catalog', self::$model->url, $this->pageQuery($page, self::$model->url))) {
                 $last = end($dataProducts);
                 $page++;
 
+
                 // if ($last === end($data) || $page > self::$model->limitPage) {
-                // if ($last === end($data) || $page > 7) {
-                if ($last === end($data)) {
+                // if ($last === end($data) || $page == 3) {
+                // if (($last === end($data) && !$excuse) || $page == 4) {
+                // if (($last === end($data) && !$excuse) || $page == 4) {
+                // if ($last === end($data) && !$excuse) {
+                if (false) {
                     break;
                 } else {
                     foreach ($data as $product) {
-                        $dataProducts[] = $product;
+                        if ($product) {
+                            $dataProducts[] = $product;
+                        }
                     }
                 }
             }
 
             $productUrls = $settler->saveProducts($dataProducts, self::$model);
 
-        } else {
+        // } else {
 
-            foreach ($warnings as $warning) {
-                $dataWarnings[] = $warning;
-            }
+        //     foreach ($warnings as $warning) {
+        //         $dataWarnings[] = $warning;
+        //     }
 
-        }
+        // }
 
         self::$model->warnings = $dataWarnings;
         self::$model->products = $dataProducts;
@@ -509,6 +588,10 @@ class Parser implements ParserInterface
             return count($dataProducts);
         }
     }
+
+
+
+
 
     /**
      * parseDetails() parses products' details
@@ -538,9 +621,11 @@ class Parser implements ParserInterface
             }
 
             $detailsCount++;
+
+            if ($detailsCount == 2) {
+                break;
+            }
         }
-
-
 
         return $detailsCount;
     }

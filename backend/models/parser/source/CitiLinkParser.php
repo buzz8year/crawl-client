@@ -22,13 +22,15 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//div[@data-list-id=\'main\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//table[@class=\'product_features\']//tr'; // At Product Page
+    const XPATH_DESCRIPTION = '//p[@class=\'short_description\']'; // At Product Page
+    const XPATH_IMAGE       = '//a[@class=\'photo_carousel_link__js\']'; // At Product Page. Full size.
 
     const CATEGORY_NODE  = '//*[@class=\'menu menu_categories\']//li[contains(@class, \'menu-item_products\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
+
+    const PAGER_EXCUSE = 1;
 
     // const DEFINE_CLIENT = 'phantom'; // CURLOPT_FOLLOWLOCATION
     const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
@@ -87,11 +89,36 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and (
+            contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or
+            contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or
+            contains(translate(string(), \'СКИДК\', \'cкидк\'), \'cкидк\') or
+            contains(translate(string(), \'РАСПРОДАЖ\', \'распродаж\'), \'распродаж\')
+        )';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
@@ -105,7 +132,7 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
                 $data[] = [
                     'price' => $params['price'],
                     'name'  => $params['shortName'],
-                    'href'  => $href,
+                    'href'  => $this->processUrl($href),
                 ];
             }
         }
@@ -127,6 +154,14 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
+        }
+        return $data;
     }
 
     /**
@@ -135,6 +170,14 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            if ($node->getElementsByTagName('td') && $node->getElementsByTagName('td')->length) {
+                $data[$key]['title'] = $node->getElementsByTagName('th')[0]->getElementsByTagName('span')[0]->textContent;
+                $data[$key]['value'] = $node->getElementsByTagName('td')[0]->textContent;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -143,6 +186,14 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $node->getAttribute('href'),
+                'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src')
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url)

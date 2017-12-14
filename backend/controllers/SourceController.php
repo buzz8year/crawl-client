@@ -205,17 +205,37 @@ class SourceController extends Controller
         foreach ($model->products as $product) {
             if ($async) {
                 if ($product->sync_status == 0) {
+                    $this->deleteDetails($product);
                     $product->delete();
                     $session->setFlash('products-deleted', 'Все несинхр. товары ресурса удалены.');
                 }
             } else {
+                $this->deleteDetails($product);
                 $product->delete();
                 $session->setFlash('products-deleted', 'Все (' . $count . ') товары ресурса удалены.');
             }
         }
 
-
         return $this->redirect(['source/update', 'id' => $id]);
+    }
+
+    public function deleteDetails($product)
+    {
+        if ($product->descriptions) {
+            foreach ($product->descriptions as $description) {
+                $description->delete();
+            }
+        }
+        if ($product->productAttributes) {
+            foreach ($product->productAttributes as $attribute) {
+                $attribute->delete();
+            }
+        }
+        if ($product->productImages) {
+            foreach ($product->productImages as $image) {
+                $image->delete();
+            }
+        }
     }
 
     public function actionHeaderCreate($hid, $sid)

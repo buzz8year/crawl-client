@@ -6,20 +6,41 @@ use backend\models\CategorySource;
 use backend\models\Product;
 use Yii;
 
+
 class OcSettler
 {
+    /**
+     * @return object, instance of class
+     */
     public static function getDb()
     {
         return Yii::$app->ocdb;
     }
 
+
+
+    /**
+     * @return object
+     */
     public static function getCategories()
     {
-        $db         = self::getDb();
-        $categories = $db->createCommand('SELECT * FROM oc_category c LEFT JOIN oc_category_description cd ON(c.category_id = cd.category_id)')->queryAll();
+        $db = self::getDb();
+
+        $categories = $db->createCommand('
+            SELECT * 
+            FROM oc_category c 
+            LEFT JOIN oc_category_description cd ON(c.category_id = cd.category_id)
+        ')->queryAll();
+
         return $categories;
     }
 
+
+
+
+    /**
+     * @return array
+     */
     public static function saveCategories(int $sourceId = null)
     {
         $db = self::getDb();
@@ -79,6 +100,13 @@ class OcSettler
         return $data;
     }
 
+
+
+
+
+    /**
+     * @return void
+     */
     // public static function saveCategory($category)
     // {
     //     $db            = self::getDb();
@@ -97,14 +125,23 @@ class OcSettler
     //     }
     // }
 
+
+
+
+
+    /**
+     * @return array
+     */
     public static function saveProducts(int $sourceId = null)
     {
         $db = self::getDb();
 
         if ($sourceId) {
+            self::saveCategories($sourceId);
             $products = Product::find()->where(['source_id' => $sourceId])->all();
             // $products = Product::find()->where(['source_id' => $sourceId, 'sync_status' => 0])->all();
         } else {
+            self::saveCategories();
             $products = Product::find()->all();
             // $products = Product::find()->where(['sync_status' => 0])->all();
         }
@@ -115,69 +152,28 @@ class OcSettler
         ];
 
         foreach ($products as $product) {
-            $productExist = $db->createCommand('SELECT * FROM oc_product_description WHERE source_url = ' . $db->quoteValue($product->source_url))->queryOne();
+            $productExist = $db->createCommand('
+                SELECT * 
+                FROM oc_product_description 
+                WHERE source_url = ' . $db->quoteValue($product->source_url)
+            )->queryOne();
 
-            if (!$productExist) {
-                $db->createCommand('
-	            	INSERT INTO oc_product (image, price, status, quantity)
-		            VALUES (
-			            ' . $db->quoteValue($product->images ? $product->images[0]['source_url'] : '') . ',
-			            ' . $db->quoteValue($product->price_new ? $product->price_new : $product->price) . ',
-			            1,
-			            1
-			        )'
-                )->execute();
+            if (!$productExist && $product->price) {
+                $ocProductId = self::saveProduct($product);
+            } 
 
-                $insertedId = $db->getLastInsertID();
-
-                $db->createCommand('
-	            	INSERT INTO oc_product_description (product_id, name, description, tag, source_url, language_id)
-	            	VALUES (
-	            		' . $insertedId . ',
-	            		' . $db->quoteValue($product->title) . ',
-                        ' . $db->quoteValue($product->descriptions ? $product->descriptions[0]->text_original : '') . ',
-                        ' . $db->quoteValue($product->keyword ? $product->keyword->word : '') . ',
-	            		' . $db->quoteValue($product->source_url) . ',
-	            		1
-	            	)'
-                )->execute();
-
-                if ($product->topCategory) {
-                    $db->createCommand('
-		            	INSERT INTO oc_product_to_category (product_id, category_id, main_category)
-		            	VALUES (
-		            		' . $insertedId . ',
-		            		' . $product->topCategory->category_outer_id . ',
-		            		1
-		            	)'
-                    )->execute();
-                }
-
-                $db->createCommand('INSERT INTO oc_product_to_store (product_id, store_id) VALUES ("' . $insertedId . '", 0)')->execute();
-
-                $product->sync_status = 1;
-                $product->save();
-
+            elseif ($productExist) {
+                $ocProductId = $productExist['product_id'];
                 $data['synced']++;
-
-            } else {
-                $productCategoryExist = $db->createCommand('SELECT * FROM oc_product_to_category WHERE product_id = ' . $productExist['product_id'])->queryOne();
-                
-                if (!$productCategoryExist) {
-                    if ($product->topCategory || $product->topCategory) {
-                        $db->createCommand('
-                            INSERT INTO oc_product_to_category (product_id, category_id, main_category)
-                            VALUES (
-                                ' . $productExist['product_id'] . ',
-                                ' . $product->topCategory->category_outer_id . ',
-                                1
-                            )'
-                        )->execute();
-
-                        $data['synced']++;
-                    }
-                }
             }
+
+            self::saveProductStore($ocProductId);
+            self::saveProductCategory($product, $ocProductId);
+            self::saveDescription($product, $ocProductId);
+            self::saveAttributes($product, $ocProductId);
+
+            $product->sync_status = 1;
+            $product->save();
 
             $data['processed']++;
         }
@@ -185,4 +181,236 @@ class OcSettler
         // print_r($data);
         return $data;
     }
+
+
+
+
+    /**
+     * @return int
+     */
+    public static function saveProduct($product)
+    {
+        $db = self::getDb();
+
+        $db->createCommand('
+            INSERT INTO oc_product (image, price, status, quantity)
+            VALUES (
+                ' . $db->quoteValue($product->images ? $product->images[0]['source_url'] : '') . ',
+                ' . $db->quoteValue($product->price_new ? $product->price_new : $product->price) . ',
+                1,
+                1
+            )'
+        )->execute();
+
+        return $db->getLastInsertID();
+    }
+
+
+
+
+
+    /**
+     * @return int
+     */
+    public static function saveProductStore(int $ocProductId)
+    {
+        $db = self::getDb();
+
+        $productStoreExist = $db->createCommand('
+            SELECT * 
+            FROM oc_product_to_store 
+            WHERE product_id = ' . $ocProductId
+        )->queryOne();
+
+        if (!$productStoreExist) {
+            $db->createCommand('
+                INSERT INTO oc_product_to_store (product_id, store_id) 
+                VALUES (' . $ocProductId . ', 0)
+            ')->execute();
+        }
+    }
+
+
+
+
+
+    /**
+     * @return void
+     */
+    public static function saveProductCategory($product, int $ocProductId)
+    {
+        if ($product->topCategory && $product->topCategory->category_outer_id) {
+            $db = self::getDb();
+
+            $productCategoryExist = $db->createCommand('
+                SELECT * 
+                FROM oc_product_to_category 
+                WHERE product_id = ' . $ocProductId
+            )->queryOne();
+
+            if (!$productCategoryExist) {
+                $db->createCommand('
+                    INSERT INTO oc_product_to_category (product_id, category_id, main_category)
+                    VALUES (
+                        ' . $ocProductId . ',
+                        ' . $product->topCategory->category_outer_id . ',
+                        1
+                    )'
+                )->execute();
+            } 
+
+            // else {
+            //     $db->createCommand('
+            //         UPDATE oc_product_to_category
+            //         SET product_id = ' . $ocProductId . ', category_id = ' . $product->topCategory->category_outer_id . ', main_category = 1
+            //     ')->execute();
+            // }
+        }
+    }
+
+
+
+
+
+    /**
+     * @return void
+     */
+    public static function saveDescription($product, int $ocProductId)
+    {
+        $db = self::getDb();
+
+        $productDescExist = $db->createCommand('
+            SELECT * 
+            FROM oc_product_description 
+            WHERE product_id = ' . $ocProductId
+        )->queryOne();
+
+        if (!$productDescExist) {
+            $db->createCommand('
+                INSERT INTO oc_product_description (product_id, name, description, tag, source_url, language_id)
+                VALUES (
+                    ' . $ocProductId . ',
+                    ' . $db->quoteValue($product->title) . ',
+                    ' . $db->quoteValue($product->descriptions ? $product->descriptions[0]->text_original : '') . ',
+                    ' . $db->quoteValue($product->keyword ? $product->keyword->word : '') . ',
+                    ' . $db->quoteValue($product->source_url) . ',
+                    1
+                )'
+            )->execute();
+        } 
+
+        // else {
+        //     $db->createCommand('
+        //         UPDATE oc_product_description
+        //         SET 
+        //             description = ' . $db->quoteValue($product->descriptions ? $product->descriptions[0]->text_original : '') . ',
+        //             product_id = ' . $ocProductId . ',
+        //             source_url = ' . $db->quoteValue($product->source_url) . ',
+        //             name = ' . $db->quoteValue($product->title) . ',
+        //             tag = ' . $db->quoteValue($product->keyword ? $product->keyword->word : '') . ',
+        //             language_id = 1
+        //     ')->execute();
+        // }
+    }
+
+
+
+
+
+    /**
+     * @return void
+     */ 
+    public static function saveAttributes($product, int $ocProductId)
+    {   
+        $db = self::getDb();
+
+        // $attrGroupExist = $db->createCommand('
+        //     SELECT * 
+        //     FROM oc_attribute_group 
+        //     WHERE attribute_group_id = 0
+        // ')->queryOne();
+
+        // if (!$attrGroupExist) {
+        //     $db->createCommand('
+        //         INSERT INTO oc_attribute_group (attribute_group_id, sort_order)
+        //         VALUES (
+        //             0,
+        //             0
+        //         )'
+        //     )->execute();
+        //     $db->createCommand('
+        //         INSERT INTO oc_attribute_group_description (name, attribute_group_id, language_id)
+        //         VALUES (
+        //             \'Общие\',
+        //             0,
+        //             1
+        //         )'
+        //     )->execute();
+        // }
+
+        if ($product->attributeValues) {
+            foreach ($product->attributeValues as $attribute) {
+
+                $attrExist = $db->createCommand('
+                    SELECT * 
+                    FROM oc_attribute_description 
+                    WHERE name = ' . $db->quoteValue($attribute['title'])
+                )->queryOne();
+
+                if (!$attrExist) {
+
+                    $db->createCommand('
+                        INSERT INTO oc_attribute (attribute_group_id, sort_order)
+                        VALUES (
+                            0,
+                            0
+                        )
+                    ')->execute();
+
+                    $insAttrId = $db->getLastInsertID();
+
+                    $db->createCommand('
+                        INSERT INTO oc_attribute_description (attribute_id, name, language_id)
+                        VALUES (
+                            ' . $insAttrId . ',
+                            ' . $db->quoteValue($attribute['title']) . ',
+                            1
+                        )
+                    ')->execute();
+
+                    $db->createCommand('
+                        INSERT INTO oc_product_attribute (product_id, attribute_id, text, language_id)
+                        VALUES (
+                            ' . $ocProductId . ',
+                            ' . $insAttrId . ',
+                            ' . $db->quoteValue($attribute['value']) . ',
+                            1
+                        )
+                    ')->execute();
+                }
+
+                else {
+                    $prodAttrExist = $db->createCommand('
+                        SELECT * 
+                        FROM oc_product_attribute 
+                        WHERE product_id = ' . $ocProductId . '
+                        AND attribute_id = ' . $attrExist['attribute_id']
+                    )->queryOne();
+
+                    if (!$prodAttrExist) {
+                        $db->createCommand('
+                            INSERT INTO oc_product_attribute (product_id, attribute_id, text, language_id)
+                            VALUES (
+                                ' . $ocProductId . ',
+                                ' . $attrExist['attribute_id'] . ',
+                                ' . $db->quoteValue($attribute['value']) . ',
+                                1
+                            )
+                        ')->execute();
+                    }
+                }
+            }
+        }
+    }
 }
+

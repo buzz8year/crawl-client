@@ -53,6 +53,8 @@ class ParserController extends Controller
      */
     public function actionTrial(int $id, string $reg = '', string $cat = '', string $word = '')
     {
+        // print_r(ParserProvisioner::activeCategories($id));
+        
         // SESSION: Close
         if (($session = Yii::$app->session) && $session->isActive) {
             $session->close();
@@ -66,9 +68,11 @@ class ParserController extends Controller
         $model->regionId = $reg;
 
         if ($cat) {
-            $categorySource          = CategorySource::find()->where(['source_id' => $id, 'category_id' => $cat])->one();
+            // $categorySource          = CategorySource::find()->where(['source_id' => $id, 'category_id' => $cat])->one();
+            $categorySource          = CategorySource::findOne($cat);
+            $categoryGlobal          = Category::findOne($categorySource->category_id);
             $model->categorySourceId = $categorySource ? $categorySource->id : null;
-            $model->categoryId       = $cat;
+            $model->categoryId       = $categoryGlobal->id;
         }
 
         if ($word) {
@@ -95,14 +99,14 @@ class ParserController extends Controller
 
         // TREE: Cached or build and then cache
         $sourceCategories = [];
-        if ($model->id != 6) { // TODO: Remove
+        // if ($model->id != 6) { // TODO: Remove. Wildberries
             if ($cachedTree === false && $rawCategories) {
                 $sourceCategories = ParserProvisioner::buildTree($rawCategories);
                 Yii::$app->cache->set('categoryTreeId=' . $model->id, $sourceCategories);
             } elseif ($cachedTree) {
                 $sourceCategories = $cachedTree;
             }
-        } // TODO: Remove
+        // } // TODO: Remove. Wildberries
 
         // TREE: Flush cache
         if (Yii::$app->request->post('flushTree')) {

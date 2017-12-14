@@ -33,35 +33,36 @@ use backend\models\Source;
             <?= $form->field($model, 'price')->textInput() ?>
             <?= $form->field($model, 'price_new')->textInput() ?>
 
+
             <?= $form->field($model, 'track_price')->radioList( Product::trackPriceStatusText(), [
                     'item' => function ($index, $label, $name, $checked, $value) {
                         return '<label class="radio-inline">' . Html::radio($name, $checked, ['value'  => $value]) . $label . '</label>';
                     }
-                ] ) ?>
+                ] ) ?><br>
 
-            <?= $form->field($model, 'price_update')->textInput(['disabled' => true]) ?><br><br>
-
-            <div><?php foreach ($model->images as $image) {
-                
+            <div><label>Images:</label><br/><br/>
+                <?php foreach ($model->images as $image) {
                     if (!$image['self_parent_id']) {
                         echo Html::a(Html::img($image['source_url'], ['height' => 75]), Url::to($image['source_url'], true), ['target' => '_blank']);
                     }
                 } ?>
             </div><br>
 
-            <div><?php foreach ($model->images as $image) {
+            <div><label>Thumbs:</label><br/><br/>
+                <?php foreach ($model->images as $image) {
                     if ($image['self_parent_id']) {
-                        echo Html::a(Html::img($image['source_url']), Url::to($image['source_url'], true), ['target' => '_blank']);
+                        echo Html::a(Html::img($image['source_url'], ['height' => 35]), Url::to($image['source_url'], true), ['target' => '_blank']);
                     }
                 } ?>
             </div><br><br><br>
 
 
-            <div><?php foreach ($model->attributeValues as $attribute) {
+            <div>
+                <label>Attributes:</label><br/><br/>
+                <?php foreach ($model->attributeValues as $attribute) {
                     echo '<strong>' . $attribute['title'] . '</strong>: ' . $attribute['value'] . '<br>';
                 } ?>
             </div><br><br><br><br>
-x
 
 
             <div class="form-group">
@@ -73,13 +74,17 @@ x
         <div class="col-lg-6">
             <?= $form->field($model, 'source_url')->textInput(['readonly' => true]) ?>
             <?= $form->field($model, 'source_id')->dropDownList( Source::listSources() ) ?>
-            <?//= $form->field($model, 'keyword_id')->textInput() ?>
-            <?= Html::activeLabel($model, 'keyword_id') ?>
+            <?= $form->field($model, 'keyword_id')->textInput() ?>
+            <?//= Html::activeLabel($model, 'keyword_id') ?>
+            <?= $form->field($model, 'price_update')->textInput(['disabled' => true]) ?><br><br>
+
             <?php
             if ($keyword = Keyword::findOne($model->keyword_id)) {
                 echo Html::textInput('keyword', $keyword->word, ['class' => 'form-control', 'readonly' => true]);
             }
             ?>
+
+            <label>Descriptions:</label><br/>
             <?php foreach ($model->descriptions as $description) {
                 echo '<strong>' . $description['title'] . '</strong>' . '<br>';
                 echo $description['text_original'] . '<br><br>';

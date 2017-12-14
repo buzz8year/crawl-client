@@ -20,9 +20,9 @@ class Book24Parser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//div[@class=\'book-list js-book-list\']//div[@class=\'book-list__item js-book-list-item js-catalog-item-element\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//div[@class=\'rowCover\']'; // At Product Page
+    const XPATH_DESCRIPTION = '//div[@id=\'bookDescription\']//div[@class=\'text\']'; // At Product Page
+    const XPATH_IMAGE       = '//img[@class=\'magnifyImage\']'; // At Product Page. Full size.
 
     const CATEGORY_NODE  = '//div[@class=\'leftTypeMenu\']/div[@class=\'itemCover\']'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
@@ -95,7 +95,8 @@ class Book24Parser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {
@@ -137,6 +138,14 @@ class Book24Parser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
+        }
+        return $data;
     }
 
     /**
@@ -145,6 +154,18 @@ class Book24Parser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            foreach ($node->getElementsByTagName('div') as $div) {
+                if ($div->getAttribute('class') == 'leftTD') {
+                    $data[$key]['title'] = trim($div->textContent);
+                }
+                if ($div->getAttribute('class') == 'rightTD') {
+                    $data[$key]['value'] = trim($div->textContent);
+                }
+            }
+        }
+        return $data;
     }
 
     /**
@@ -153,6 +174,14 @@ class Book24Parser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $node->getAttribute('src'),
+                'thumb'  => '',
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url)

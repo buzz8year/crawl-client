@@ -20,9 +20,9 @@ class SotmarketParser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//div[@data-conf-identifier=\'products-tile\']//div[@itemprop=\'itemListElement\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//*[contains(@class, \'b-goods-specifications-row\')]'; // At Product Page
+    const XPATH_DESCRIPTION = '//*[contains(@class, \'mod_product-desc\')]//h3'; // At Product Page
+    const XPATH_IMAGE       = '//*[@class=\'b-gallery-preview-image\']/img'; // At Product Page. Full size.
 
     const CATEGORY_NODE  = '//a[contains(@class, \'b-header-nav-item\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
@@ -35,6 +35,8 @@ class SotmarketParser extends Parser implements ParserSourceInterface
     const DEFINE_CLIENT = 'curl'; // CURLOPT_FOLLOWLOCATION
 
     const PAGER_SPLIT_URL = true;
+
+    const PAGER_EXCUSE = true;
 
     static $region;
 
@@ -94,11 +96,31 @@ class SotmarketParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//span[contains(@class, \'scheme_oldprice\')]';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {
@@ -106,7 +128,7 @@ class SotmarketParser extends Parser implements ParserSourceInterface
             $data[] = [
                 'price' => $object->price,
                 'name'  => $object->name,
-                'href'  => $object->url,
+                'href'  => $this->processUrl($object->url),
             ];
         }
 
@@ -127,6 +149,16 @@ class SotmarketParser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            if ($node->nextSibling && $node->nextSibling->nextSibling->nodeName == 'p') {
+                $data[$key] = [
+                    'title' => $node->textContent,
+                    'text'  => $node->nextSibling->nextSibling->textContent,
+                ];
+            }
+        }
+        return $data;
     }
 
     /**
@@ -135,6 +167,14 @@ class SotmarketParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            if ($node->getElementsByTagName('div') && $node->getElementsByTagName('div')->length == 2) {
+                $data[$key]['title'] = $node->getElementsByTagName('div')[0]->textContent;
+                $data[$key]['value'] = $node->getElementsByTagName('div')[1]->textContent;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -143,6 +183,14 @@ class SotmarketParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $this->processUrl($node->getAttribute('src')),
+                'thumb'    => ''
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url, bool $explode = true)

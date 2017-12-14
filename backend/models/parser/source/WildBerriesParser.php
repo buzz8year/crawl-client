@@ -17,9 +17,9 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
     const XPATH_CATALOG = '//a[@class=\'ref_goods_n_p\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
-    const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_ATTRIBUTE   = '//p[@class=\'pp color\' or @class=\'pp composition\' or @class=\'pp\']'; // At Product Page
+    const XPATH_DESCRIPTION = '//div[@id=\'description\']'; // At Product Page
+    const XPATH_IMAGE       = '//div[@id=\'scrollImage\']//a[contains(@class, \'image\')]'; // At Product Page. Full size.
 
     const CATEGORY_NODE      = ''; // At HomePage navmenu
     const CATEGORY_TREE_NODE = '//div[@id=\'sitemap\']/ul'; // At HomePage navmenu
@@ -29,7 +29,7 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
 
     const MAX_QUANTITY = '';
 
-    const DEFINE_CLIENT = 'phantom'; // CURLOPT_FOLLOWLOCATION
+    // const DEFINE_CLIENT = 'phantom'; // CURLOPT_FOLLOWLOCATION
 
     static $region;
 
@@ -47,9 +47,9 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
                         $data[] = $tree;
                     }
 
-                    // if ($key > 2) {
-                    //     break;
-                    // }
+                    if ($key == 2) {
+                        break;
+                    }
                 }
             }
         }
@@ -92,11 +92,31 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//span[@class=\'price\']/del';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         // print_r($nodes);
@@ -140,6 +160,14 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'title' => '',
+                'text'  => $node->textContent,
+            ];
+        }
+        return $data;
     }
 
     /**
@@ -148,6 +176,15 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            $exp = explode(':', $node->textContent);
+            if (count($exp) == 2) {
+                $data[$key]['title'] = trim($exp[0]);
+                $data[$key]['value'] = trim($exp[1]);
+            }
+        }
+        return $data;
     }
 
     /**
@@ -156,6 +193,14 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $data[] = [
+                'fullsize' => $node->getAttribute('href'),
+                'thumb'    => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url)
@@ -182,7 +227,7 @@ class WildBerriesParser extends Parser implements ParserSourceInterface
         $url = '';
 
         if ($categorySourceId && !$keyword) {
-            $url = $domain . $category->source_url;
+            $url = $this->processUrl($category->source_url);
         }
 
         // if ($categorySourceId && $keyword) {

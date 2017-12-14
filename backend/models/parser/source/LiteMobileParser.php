@@ -21,9 +21,9 @@ class LiteMobileParser extends Parser implements ParserSourceInterface
     // const XPATH_SEARCH  = '//div[@itemid=\'#product\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
-    const XPATH_ATTRIBUTE   = ''; // At Product Page
+    const XPATH_ATTRIBUTE   = '//div[@id=\'tabs-1\']//li'; // At Product Page
     const XPATH_DESCRIPTION = ''; // At Product Page
-    const XPATH_IMAGE       = ''; // At Product Page. Full size.
+    const XPATH_IMAGE       = '//div[@class=\'view-goods__left-paginator-item\']/img'; // At Product Page. Full size.
 
     const CATEGORY_TREE_NODE  = '//nav//a[contains(text(), \'Каталог товаров\')]'; // At HomePage navmenu
     // const CATEGORY_NODE  = ''; // At HomePage navmenu
@@ -103,7 +103,8 @@ class LiteMobileParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
         foreach ($nodes as $node) {
@@ -147,6 +148,15 @@ class LiteMobileParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
+        $data = [];
+        foreach ($object as $key => $node) {
+            $exp = explode(':', $node->textContent);
+            if (count($exp) > 1) {
+                $data[$key]['title'] = trim($exp[0]);
+                $data[$key]['value'] = ltrim($node->textContent, $exp[0]);
+            }
+        }
+        return $data;
     }
 
     /**
@@ -155,6 +165,16 @@ class LiteMobileParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
+        $data = [];
+        foreach ($object as $node) {
+            $exp = explode('-', $node->getAttribute('src'));
+            unset($exp[count($exp) - 1]);
+            $data[] = [
+                'fullsize' => implode('-', $exp) . '-500x638.jpg',
+                'thumb'    => $node->getAttribute('src'),
+            ];
+        }
+        return $data;
     }
 
     public function pageQuery(int $page, string $url)

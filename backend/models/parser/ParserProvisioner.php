@@ -2,6 +2,7 @@
 
 namespace backend\models\parser;
 
+use backend\models\CategorySource;
 use backend\models\Category;
 use backend\models\Keyword;
 use backend\models\Region;
@@ -77,10 +78,15 @@ class ParserProvisioner implements ParserProvisioningInterface
     {
         $sourceCategories = [];
 
+        $maxNest = CategorySource::find()
+            ->where('source_id = ' . $sourceId)
+            ->max('nest_level');
+
         $categories = Category::find()
             ->select(['category.id as id', 'cs.id as csid', 'category.title', 'cs.source_url'])
             ->join('join', 'category_source cs', 'cs.category_id = category.id')
-            ->where('cs.nest_level = 0 AND cs.source_id = ' . $sourceId)
+            ->where('cs.nest_level = ' . $maxNest . ' AND cs.source_id = ' . $sourceId)
+            // ->where('cs.nest_level = 0 AND cs.source_id = ' . $sourceId)
             // ->where('category.status = 1 AND cs.source_id = ' . $sourceId)
             ->distinct(true)
             ->asArray()
@@ -251,7 +257,7 @@ class ParserProvisioner implements ParserProvisioningInterface
 
             $onclick  = '';
             if ($category['source_url']) {
-                $onclick = 'categoryOnSelect(' . $sourceId . ', ' . ($regionId ? $regionId : '\'\'') . ', ' . $category['category_id'] . ');';
+                $onclick = 'categoryOnSelect(' . $sourceId . ', ' . ($regionId ? $regionId : '\'\'') . ', ' . $category['id'] . ');';
             }
 
             $expand = '';
@@ -276,7 +282,7 @@ class ParserProvisioner implements ParserProvisioningInterface
             echo $htmlWrap[0];
             echo $htmlDiv[0];
             echo $htmlSpan[0];
-            echo $category['title'] ?? 'NONCAT';
+            echo $category['title'] ? $category['title'] : 'NONCAT';
             echo $htmlSpan[1];
 
             if (isset($category['children']) && count($category['children'])) {

@@ -3,9 +3,11 @@
 namespace backend\controllers;
 
 use Yii;
+use backend\models\Source;
 use backend\models\Product;
 use backend\models\ProductAttribute;
 use backend\models\search\ProductSearch;
+use backend\models\opencart\OcSettler;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -39,9 +41,20 @@ class ProductController extends Controller
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        $syncData = [];
+
+        if (Yii::$app->request->post('syncGoods')) {
+            $syncData = OcSettler::saveProducts();
+        }
+
+        if (Yii::$app->request->post('deleteGoods')) {
+           $this->deleteProducts();
+        }
+
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'syncData' => $syncData,
         ]);
     }
 
@@ -107,6 +120,43 @@ class ProductController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    public function deleteProducts(int $async = 0)
+    {
+        $sources = Source::find()->all();
+        foreach ($sources as $source) {
+            foreach ($source->products as $product) {
+                if ($async) {
+                    if ($product->sync_status == 0) {
+                        $this->deleteDetails($product);
+                        $product->delete();
+                    }
+                } else {
+                    $this->deleteDetails($product);
+                    $product->delete();
+                }
+            }
+        }
+    }
+
+    public function deleteDetails($product)
+    {
+        if ($product->descriptions) {
+            foreach ($product->descriptions as $description) {
+                $description->delete();
+            }
+        }
+        if ($product->productAttributes) {
+            foreach ($product->productAttributes as $attribute) {
+                $attribute->delete();
+            }
+        }
+        if ($product->productImages) {
+            foreach ($product->productImages as $image) {
+                $image->delete();
+            }
+        }
     }
 
     /**
