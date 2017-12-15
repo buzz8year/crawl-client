@@ -5,6 +5,7 @@ namespace console\controllers;
 use backend\models\parser\Parser;
 use backend\models\parser\ParserProvisioner;
 use backend\models\Product;
+use backend\models\Source;
 use Yii;
 
 class ParseController extends \yii\console\Controller
@@ -43,50 +44,66 @@ class ParseController extends \yii\console\Controller
 
     public function actionList()
     {
-        $sources = ParserProvisioner::activeSources();
-
-        $delimiterWrap = self::DELIMITER_NUMBER - mb_strlen(self::ACTIVE_TITLE) - 1;
-
-        $this->stdout(
-            PHP_EOL . PHP_EOL .
-            self::ACTIVE_TITLE .
-            str_repeat(' ', $delimiterWrap) . '↓' .
-            PHP_EOL . PHP_EOL
-        );
-
-        foreach ($sources as $sourceId => $source) {
-            $categories      = ParserProvisioner::activeCategories($sourceId);
-            $delimiterSource = self::DELIMITER_NUMBER - mb_strlen($source['title']) - mb_strlen(self::QUANTITY_TITLE);
-
-            $this->stdout(
-                PHP_EOL . PHP_EOL .
-                strtoupper($source['title']) .
-                str_repeat(' ', $delimiterSource) .
-                self::QUANTITY_TITLE .
-                PHP_EOL . PHP_EOL
-            );
-
-            foreach ($categories as $categoryId => $category) {
-                $countProducts     = count(Product::find()->where(['category_id' => $categoryId])->all());
-                $countProducts     = $countProducts ? (' ' . $countProducts) : '';
-                $delimiterCategory = self::DELIMITER_NUMBER - mb_strlen($category['title'] . ' ') - strlen((string) $countProducts);
-
-                $this->stdout(
-                    $category['title'] . ' ' .
-                    str_repeat('-', $delimiterCategory) .
-                    $countProducts .
-                    PHP_EOL
-                );
-            }
+        $sources = Source::find()->where(['status' => 1])->all();
+        foreach ($sources as $source) {
+            $this->stdout($source->id . PHP_EOL);
         }
-        $this->stdout(
-            PHP_EOL . PHP_EOL .
-            self::ACTIVE_TITLE .
-            str_repeat(' ', $delimiterWrap) . '↑' .
-            PHP_EOL . PHP_EOL
-        );
-
     }
+
+    public function actionListNames()
+    {
+        $sources = Source::find()->where(['status' => 1])->all();
+        foreach ($sources as $source) {
+            $this->stdout($source->id . ' - ' . $source->title . PHP_EOL);
+        }
+    }
+
+    // public function actionList()
+    // {
+    //     $sources = ParserProvisioner::activeSources();
+
+    //     $delimiterWrap = self::DELIMITER_NUMBER - mb_strlen(self::ACTIVE_TITLE) - 1;
+
+    //     $this->stdout(
+    //         PHP_EOL . PHP_EOL .
+    //         self::ACTIVE_TITLE .
+    //         str_repeat(' ', $delimiterWrap) . '↓' .
+    //         PHP_EOL . PHP_EOL
+    //     );
+
+    //     foreach ($sources as $sourceId => $source) {
+    //         $categories      = ParserProvisioner::activeCategories($sourceId);
+    //         $delimiterSource = self::DELIMITER_NUMBER - mb_strlen($source['title']) - mb_strlen(self::QUANTITY_TITLE);
+
+    //         $this->stdout(
+    //             PHP_EOL . PHP_EOL .
+    //             strtoupper($source['title']) .
+    //             str_repeat(' ', $delimiterSource) .
+    //             self::QUANTITY_TITLE .
+    //             PHP_EOL . PHP_EOL
+    //         );
+
+    //         foreach ($categories as $categoryId => $category) {
+    //             $countProducts     = count(Product::find()->where(['category_id' => $categoryId])->all());
+    //             $countProducts     = $countProducts ? (' ' . $countProducts) : '';
+    //             $delimiterCategory = self::DELIMITER_NUMBER - mb_strlen($category['title'] . ' ') - strlen((string) $countProducts);
+
+    //             $this->stdout(
+    //                 $category['title'] . ' ' .
+    //                 str_repeat('-', $delimiterCategory) .
+    //                 $countProducts .
+    //                 PHP_EOL
+    //             );
+    //         }
+    //     }
+    //     $this->stdout(
+    //         PHP_EOL . PHP_EOL .
+    //         self::ACTIVE_TITLE .
+    //         str_repeat(' ', $delimiterWrap) . '↑' .
+    //         PHP_EOL . PHP_EOL
+    //     );
+
+    // }
 
     public function parseSource(int $sourceId)
     {
