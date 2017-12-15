@@ -50,7 +50,7 @@ class ParseController extends \yii\console\Controller
         }
     }
 
-    public function actionListNames()
+    public function actionListName()
     {
         $sources = Source::find()->where(['status' => 1])->all();
         foreach ($sources as $source) {
