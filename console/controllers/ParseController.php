@@ -13,15 +13,30 @@ class ParseController extends \yii\console\Controller
     const QUANTITY_TITLE   = 'Кол-во товаров';
     const DELIMITER_NUMBER = 100;
 
-    // public function actionIndex(int $id = null, string $saleFlag = '', string $reg = '', string $cat = '', string $word = '')
-    public function actionIndex(int $id = null, string $saleFlag = '')
+    public $src;
+    public $sale = false;
+
+    public function options($action)
     {
-        if ($id) {
-            $this->parseSource($id, $saleFlag);
+        // $options = parent::options($action);
+        // if ($action == 'parse') {
+            $options[] = 'src';
+            $options[] = 'sale';
+        // }
+        return $options;
+    }
+
+    // public function actionIndex(int $id = null, string $saleFlag = '', string $reg = '', string $cat = '', string $word = '')
+    // public function actionIndex(int $id = null, string $saleFlag = '')
+    public function actionIndex()
+    {
+        // if ($id) {
+        if ($this->src) {
+            $this->parseSource($this->src, $this->sale);
         } else {
             $provisioner = new ParserProvisioner();
             foreach ($provisioner->activeSources() as $sourceId => $source) {
-                $this->parseSource($sourceId, $saleFlag);
+                $this->parseSource($sourceId, $this->sale);
             }
         }
     }
@@ -73,7 +88,7 @@ class ParseController extends \yii\console\Controller
 
     }
 
-    public function parseSource(int $sourceId, string $saleFlag = '')
+    public function parseSource(int $sourceId)
     {
         $super       = new Parser();
         $provisioner = new ParserProvisioner();
@@ -81,7 +96,7 @@ class ParseController extends \yii\console\Controller
         $model  = $super->createModel($sourceId);
         $parser = new $model->class();
 
-        if ($saleFlag === 'sale') {
+        if ($this->sale === true) {
             $model->saleFlag = true;
         }
 
