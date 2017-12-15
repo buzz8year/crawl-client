@@ -94,10 +94,6 @@ use backend\models\Source;
 
     </div><br/>
 
-
-    <?//= $form->field($model, 'is_rescheduled')->textInput() ?>
-
-
     <?php ActiveForm::end(); ?>
 
 </div>
