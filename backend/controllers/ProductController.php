@@ -47,16 +47,14 @@ class ProductController extends Controller
             $syncData = OcSettler::saveProducts();
         }
 
-        if (Yii::$app->request->post('deleteGoods')) {
-           $this->deleteProducts();
-        }
-
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
             'syncData' => $syncData,
         ]);
     }
+
+
 
     /**
      * Displays a single Product model.
@@ -119,6 +117,16 @@ class ProductController extends Controller
     {
         $this->findModel($id)->delete();
 
+        return $this->redirect(['index']);
+    }
+
+    /**
+     * Deletes all Products and theit details.
+     * @return mixed
+     */
+    public function actionDeleteAll()
+    {
+       $this->deleteProducts();
         return $this->redirect(['index']);
     }
 

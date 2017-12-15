@@ -51,7 +51,7 @@ class ParserController extends Controller
      * @param string $word - keyword value, can be empty
      * @return mixed
      */
-    public function actionTrial(int $id, string $reg = '', string $cat = '', string $word = '')
+    public function actionTrial(int $id, string $reg = '', string $cat = '', string $word = '', int $sale = null)
     {
         // print_r(ParserProvisioner::activeCategories($id));
         
@@ -71,13 +71,18 @@ class ParserController extends Controller
             // $categorySource          = CategorySource::find()->where(['source_id' => $id, 'category_id' => $cat])->one();
             $categorySource          = CategorySource::findOne($cat);
             $categoryGlobal          = Category::findOne($categorySource->category_id);
-            $model->categorySourceId = $categorySource ? $categorySource->id : null;
+            // $model->categorySourceId = $categorySource ? $categorySource->id : null;
+            $model->categorySourceId = $cat;
             $model->categoryId       = $categoryGlobal->id;
         }
 
         if ($word) {
             $keyword          = Keyword::find()->where(['word' => $word])->one();
             $model->keywordId = $keyword ? $keyword->id : null;
+        }
+
+        if ($sale) {
+            $model->saleFlag = true;
         }
 
         $notVoid = $reg || $cat || $word;
@@ -120,10 +125,10 @@ class ParserController extends Controller
             return Yii::$app->getResponse()->redirect(['parser/trial', 'id' => $id, 'reg' => $reg, 'cat' => $cat, 'word' => $flyKeyword]);
         }
 
-        // SALES: Sales Flag
-        if (Yii::$app->request->post('parseSales')) {
-            $model->saleFlag = true;
-        }
+        // // SALES: Sales Flag
+        // if (Yii::$app->request->post('parseSales')) {
+        //     $model->saleFlag = true;
+        // }
 
         // PARSE: Products
         if (Yii::$app->request->post('parseGoods') && $notVoid) {

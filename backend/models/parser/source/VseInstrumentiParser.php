@@ -28,7 +28,7 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
     const CATEGORY_WRAP_NODE  = '//ul[@id=\'nav\']//a[@data-cat-id]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = '';
 
@@ -100,6 +100,28 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+
+
+    // /**
+    //  * @return
+    //  */
+    // public static function xpathSale(string $xpath)
+    // {
+    //     $extend = ' and (.//div[contains(@class, \'price-old\')])';
+    //     $explode  = rtrim($xpath, ']');
+    //     $xpath = $explode . $extend . ']';
+
+    //     return $xpath;
+    // }
+
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
@@ -117,11 +139,13 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
                     $price = preg_replace('/[^0-9]/', '', $child->textContent);
                 }
             }
-            $data[] = [
-                'price' => $price ? $price : null,
-                'name'  => $title->textContent,
-                'href'  => $this->processUrl($title->getAttribute('href')),
-            ];
+            if ($title->getAttribute('href') && isset($price)) {
+                $data[] = [
+                    'price' => $price,
+                    'name'  => $title->textContent,
+                    'href'  => $this->processUrl($title->getAttribute('href')),
+                ];
+            }
         }
 
         return $data;
@@ -206,7 +230,12 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
 
         if ($categorySourceId && !$keyword) {
             self::$template = 'catalog';
-            return $this->processUrl($category->source_url);
+            if (self::$model->saleFlag === true) {
+                $exp = explode(self::$model->domain, $category->source_url);
+                return $this->processUrl('/rasprodazha' . end($exp));
+            } else {
+                return $this->processUrl($category->source_url);
+            }
         }
         if (!$categorySourceId && $keyword) {
             self::$template = 'search';

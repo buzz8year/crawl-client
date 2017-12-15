@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use backend\models\parser\ParserProvisioner;
 use backend\models\Source;
+use backend\models\Keyword;
 use backend\models\CategorySource;
 use backend\models\opencart\OcSettler;
 use yii\widgets\Breadcrumbs;
@@ -58,7 +59,12 @@ echo Breadcrumbs::widget([
                 <small><del>Ограничение хождения по страницам товаров: 2</del></small><br/>
                 <small><del>Количество страниц каталога с товарами: 10</del></small><br/><br/>
                 <label style="font-weight:normal">
-                    <?= Html::input('checkbox', 'parseSales', 1, ['style' => 'position:relative;top:1px', 'checked' => $model->saleFlag]) ?>
+                    <?= Html::input('checkbox', 'parseSales', 1, [
+                            'style' => 'position:relative;top:1px', 
+                            'checked' => $model->saleFlag,
+                            'onchange' => 'location = \'index.php?r=parser/trial&id=' . $model->id . '&reg=' . $model->regionId . '&cat=' . $model->categorySourceId . '&word=' . (($word = Keyword::findOne($model->keywordId)) ? $word->word : '') . '&sale=' . ($model->saleFlag ? 0 : 1) . '\';'
+                        ]
+                    ) ?>
                     Парсинг только акционных товаров
                 </label><br/><br/>
             </div>

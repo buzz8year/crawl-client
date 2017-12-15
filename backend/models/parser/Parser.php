@@ -556,8 +556,8 @@ class Parser implements ParserInterface
                 // if ($last === end($data) || $page == 3) {
                 // if (($last === end($data) && !$excuse) || $page == 4) {
                 // if (($last === end($data) && !$excuse) || $page == 4) {
-                // if ($last === end($data) && !$excuse) {
-                if (false) {
+                if ($last === end($data) && !$excuse) {
+                // if (false) {
                     break;
                 } else {
                     foreach ($data as $product) {

@@ -27,14 +27,16 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <div class="form-group pull-right text-right">
-        <?php ActiveForm::begin();?>
-            <?= Html::submitButton('Удалить все товары', [
-                'class' => 'btn btn-danger', 
-                'name' => 'deleteGoods', 
-                'value' => 1,
-                'onclick' => 'if (!confirm(\'Еще раз, удалить все товары?\')) { return false; }'
-            ]) ?>
-        <?php ActiveForm::end();?>
+            <?= Html::a(
+                'Удалить все товары', 
+                ['product/delete-all'],
+                [
+                    'class' => 'btn btn-danger', 
+                    'name' => 'deleteGoods', 
+                    'value' => 1,
+                    'onclick' => 'if (!confirm(\'Еще раз, удалить все товары?\')) { return false; }'
+                ]
+            ) ?>
     </div>
 
     <div class="form-group pull-right text-right">

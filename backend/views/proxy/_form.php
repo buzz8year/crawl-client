@@ -27,7 +27,7 @@ use yii\widgets\ActiveForm;
     </div>
 
     <div class="col-sm-4">
-    <?= $form->field($model, 'version')->dropDownList(['4' => 'IPv4', '4' => 'IPv6']) ?>
+    <?= $form->field($model, 'version')->dropDownList(['4' => 'IPv4', '6' => 'IPv6']) ?>
     </div>
 
     <div class="form-group col-sm-12"><br/><br/>

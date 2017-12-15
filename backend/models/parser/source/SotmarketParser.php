@@ -28,7 +28,7 @@ class SotmarketParser extends Parser implements ParserSourceInterface
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = '';
 
@@ -49,7 +49,7 @@ class SotmarketParser extends Parser implements ParserSourceInterface
 
         if ($response = $this->sessionClient(self::$model->domain)) {
             if (($nodes = $this->getNodes($response, self::CATEGORY_NODE)) && $nodes->length) {
-                foreach ($nodes as $node) {
+                foreach ($nodes as $key => $node) {
                     $index = json_decode($node->getAttribute('data-index'));
                     if (count($index) == 1) {
                         $data[$index[0]] = [
@@ -80,7 +80,26 @@ class SotmarketParser extends Parser implements ParserSourceInterface
                             'title'      => trim($node->textContent),
                             'nest_level' => 2,
                         ];
+
+                        if ($rspns = $this->sessionClient(self::$model->domain . $node->getAttribute('href'))) {
+                            if (($nds = $this->getNodes($rspns, '//a[@class=\'g-font color_black\']')) && $nds->length) {
+                                foreach ($nds as $nd) {
+                                    $data[$index[0]]['children'][$index[1]]['children'][$index[2]]['children'][] = [
+                                        'csid'       => '',
+                                        'dump'       => '',
+                                        'alias'      => '',
+                                        'href'       => self::$model->domain . $nd->getAttribute('href'),
+                                        'title'      => trim($nd->textContent),
+                                        'nest_level' => 3,
+                                    ];
+                                }
+                            }
+                        }
                     }
+
+                    // if ($key == 125) {
+                    //     break;
+                    // }
                 }
             }
         }
