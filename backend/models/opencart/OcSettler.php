@@ -148,7 +148,8 @@ class OcSettler
 
         $data = [
         	'processed' => 0,
-        	'synced' => 0,
+        	'updated' => 0,
+            'synced' => 0,
         ];
 
         foreach ($products as $product) {
@@ -160,11 +161,12 @@ class OcSettler
 
             if (!$productExist && $product->price) {
                 $ocProductId = self::saveProduct($product);
-            } 
+                $data['synced']++;
+            }
 
             elseif ($productExist) {
                 $ocProductId = $productExist['product_id'];
-                $data['synced']++;
+                $data['updated']++;
             }
 
             self::saveProductStore($ocProductId);

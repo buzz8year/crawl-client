@@ -4,34 +4,31 @@ namespace console\controllers;
 
 use backend\models\parser\Parser;
 use backend\models\parser\ParserProvisioner;
+use backend\models\opencart\OcSettler;
 use backend\models\Product;
 use backend\models\Source;
 use Yii;
 
 class ParseController extends \yii\console\Controller
 {
-    const ACTIVE_TITLE     = 'АКТИВНЫЕ: Ресурсы и Категории';
-    const QUANTITY_TITLE   = 'Кол-во товаров';
-    const DELIMITER_NUMBER = 100;
-
     public $src;
     public $sale = false;
 
-    public function options($action)
+    public function options($actionID)
     {
-        // $options = parent::options($action);
-        // if ($action == 'parse') {
+        $options = parent::options($actionID);
+        if ($actionID == 'index') {
             $options[] = 'src';
             $options[] = 'sale';
-        // }
+        }
+        if ($actionID == 'sync') {
+            $options[] = 'src';
+        }
         return $options;
     }
 
-    // public function actionIndex(int $id = null, string $saleFlag = '', string $reg = '', string $cat = '', string $word = '')
-    // public function actionIndex(int $id = null, string $saleFlag = '')
     public function actionIndex()
     {
-        // if ($id) {
         if ($this->src) {
             $this->parseSource($this->src, $this->sale);
         } else {
@@ -58,52 +55,19 @@ class ParseController extends \yii\console\Controller
         }
     }
 
-    // public function actionList()
-    // {
-    //     $sources = ParserProvisioner::activeSources();
+    public function actionSync()
+    {
+        Yii::info('SYNC Goods: ' . PHP_EOL, 'parse-console');
+        $this->stdout('SYNC Goods: ' . PHP_EOL);
 
-    //     $delimiterWrap = self::DELIMITER_NUMBER - mb_strlen(self::ACTIVE_TITLE) - 1;
+        if ($syncData = OcSettler::saveProducts($this->src ?? null)) {
+            Yii::info('Processed: ' . $syncData['processed'] . PHP_EOL, 'parse-console');
+            Yii::info('Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL, 'parse-console');
 
-    //     $this->stdout(
-    //         PHP_EOL . PHP_EOL .
-    //         self::ACTIVE_TITLE .
-    //         str_repeat(' ', $delimiterWrap) . '↓' .
-    //         PHP_EOL . PHP_EOL
-    //     );
-
-    //     foreach ($sources as $sourceId => $source) {
-    //         $categories      = ParserProvisioner::activeCategories($sourceId);
-    //         $delimiterSource = self::DELIMITER_NUMBER - mb_strlen($source['title']) - mb_strlen(self::QUANTITY_TITLE);
-
-    //         $this->stdout(
-    //             PHP_EOL . PHP_EOL .
-    //             strtoupper($source['title']) .
-    //             str_repeat(' ', $delimiterSource) .
-    //             self::QUANTITY_TITLE .
-    //             PHP_EOL . PHP_EOL
-    //         );
-
-    //         foreach ($categories as $categoryId => $category) {
-    //             $countProducts     = count(Product::find()->where(['category_id' => $categoryId])->all());
-    //             $countProducts     = $countProducts ? (' ' . $countProducts) : '';
-    //             $delimiterCategory = self::DELIMITER_NUMBER - mb_strlen($category['title'] . ' ') - strlen((string) $countProducts);
-
-    //             $this->stdout(
-    //                 $category['title'] . ' ' .
-    //                 str_repeat('-', $delimiterCategory) .
-    //                 $countProducts .
-    //                 PHP_EOL
-    //             );
-    //         }
-    //     }
-    //     $this->stdout(
-    //         PHP_EOL . PHP_EOL .
-    //         self::ACTIVE_TITLE .
-    //         str_repeat(' ', $delimiterWrap) . '↑' .
-    //         PHP_EOL . PHP_EOL
-    //     );
-
-    // }
+            $this->stdout('Processed: ' . $syncData['processed'] . PHP_EOL);
+            $this->stdout('Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL);
+        }
+    }
 
     public function parseSource(int $sourceId)
     {
@@ -128,7 +92,7 @@ class ParseController extends \yii\console\Controller
         $keywords   = $provisioner->listSourceKeywords($sourceId);
 
         $this->stdout('Categories Found: ' . count($categories) . PHP_EOL);
-        $this->stdout('Keywords Found: ' . count($keywords) . PHP_EOL . PHP_EOL);
+        // $this->stdout('Keywords Found: ' . count($keywords) . PHP_EOL . PHP_EOL);
 
         // LOG: console/runtime/logs/parse.log
         Yii::info('Categories to parse: ' . count($categories) . PHP_EOL, 'parse-console');
