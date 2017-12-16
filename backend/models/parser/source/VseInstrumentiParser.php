@@ -17,18 +17,18 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
     const QUERY_KEYWORD  = 'what=';
 
     const XPATH_WARNING = ''; // At Catalog/Search Page
-    const XPATH_CATALOG = '//div[@id=\'goodsListingBox\']//div[@class=\'tile-content\']'; // At Catalog/Search Page
+    const XPATH_CATALOG = '//div[@id=\'goodsListingBox\']//div[@data-good-id]'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//div[@itemprop=\'additionalProperty\']'; // At Product Page
-    const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']'; // At Product Page
+    const XPATH_DESCRIPTION = '//div[@id=\'tab1_content\']//div[@itemprop=\'description\']'; // At Product Page
     const XPATH_IMAGE       = '//div[@data-type=\'imageGoods\']'; // At Product Page. Full size.
 
     // const CATEGORY_NODE  = ''; // At HomePage navmenu
     const CATEGORY_WRAP_NODE  = '//ul[@id=\'nav\']//a[@data-cat-id]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = '';
 
@@ -133,7 +133,7 @@ class VseInstrumentiParser extends Parser implements ParserSourceInterface
         foreach ($nodes as $node) {
             foreach ($node->getElementsByTagName('*') as $child) {
                 if (strpos($child->getAttribute('class'), 'product-name') !== false) {
-                    $title = $child->getElementsByTagName('*')[0];
+                    $title = $child->getElementsByTagName('a')[0];
                 }
                 if (strpos($child->getAttribute('class'), 'price-actual') !== false) {
                     $price = preg_replace('/[^0-9]/', '', $child->textContent);

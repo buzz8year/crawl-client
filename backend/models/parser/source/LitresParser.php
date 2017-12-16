@@ -154,7 +154,7 @@ class LitresParser extends Parser implements ParserSourceInterface
                         $author = $child->textContent;
                     }
                     if ($child->getAttribute('class') == 'simple-price') {
-                        $price = preg_replace('/[^0-9]/', '', $child->textContent);
+                        $price = floatval(str_replace(',', '.', $child->textContent));
                     }
                 }
             }
