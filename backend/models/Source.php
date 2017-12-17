@@ -171,21 +171,40 @@ class Source extends \yii\db\ActiveRecord
     {
         $arrayProxies = [];
         
-        foreach ($this->proxySources as $proxySource) {
-            $proxy = Proxy::findOne($proxySource['proxy_id']);
+        // foreach ($this->proxySources as $proxySource) {
+        //     $proxy = Proxy::findOne($proxySource['proxy_id']);
 
-            $address = $proxy->ip . ( $proxy->port ? ':' . $proxy->port : '' );
+        //     $address = $proxy->ip . ($proxy->port ? ':' . $proxy->port : '');
+        //     $password = $proxy->login ? $proxy->login . ':' . $proxy->password : '';
+
+        //     if ($proxySource->status) {
+        //         $arrayProxies['ipv' . $proxy->version][] = [
+        //             'address'   => $address,
+        //             'password'  => $password,
+        //         ];
+        //     }
+        // }
+
+        foreach (Proxy::find()->all() as $proxy) {
+            $address = $proxy->ip . ($proxy->port ? ':' . $proxy->port : '');
             $password = $proxy->login ? $proxy->login . ':' . $proxy->password : '';
 
-            if ( $proxySource->status )
-                $arrayProxies['ipv' . $proxy->version][] = [
-                    'address'   => $address,
-                    'password'  => $password,
-                ];
+            $arrayProxies['ipv' . $proxy->version][] = [
+                'address'   => $address,
+                'password'  => $password,
+            ];
         }
 
         return $arrayProxies;
     }
+
+
+
+    public function getProxySources()
+    {
+        return $this->hasMany(ProxySource::className(), ['source_id' => 'id'])->orderBy(['queue' => SORT_ASC]);
+    }
+
 
 
     public function getAllProxies()
@@ -238,11 +257,6 @@ class Source extends \yii\db\ActiveRecord
         return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->all();
     }
 
-
-    public function getProxySources()
-    {
-        return $this->hasMany(ProxySource::className(), ['source_id' => 'id'])->orderBy(['queue' => SORT_ASC]);
-    }
 
 
     public function getKeywordSources()

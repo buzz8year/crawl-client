@@ -25,11 +25,11 @@ class LitresParser extends Parser implements ParserSourceInterface
     const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']'; // At Product Page
     const XPATH_IMAGE       = '//img[@itemprop=\'image\']'; // At Product Page. Full size.
 
-    const CATEGORY_NODE  = '//li[@class=\'genre\']'; // At HomePage navmenu
+    const CATEGORY_NODE  = '//*[@class=\'genre\']'; // At HomePage navmenu
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = '';
 
@@ -48,7 +48,9 @@ class LitresParser extends Parser implements ParserSourceInterface
         $data = [];
 
         if ($response = $this->sessionClient(self::$model->domain . '/pages/new_genres/')) {
+            // print_r($response);
             if (($nodes = $this->getNodes($response, self::CATEGORY_NODE)) && $nodes->length) {
+                print_r($nodes);
                 foreach ($nodes as $key => $node) {
                     // echo($node->getElementsByTagName('span')[0]->textContent . '<br/>');
                     $top = $node->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
@@ -56,7 +58,7 @@ class LitresParser extends Parser implements ParserSourceInterface
                         'csid'       => '',
                         'dump'       => '',
                         'alias'      => '',
-                        'href'       => $top->getAttribute('href'),
+                        'href'       => $this->processUrl($top->getAttribute('href')),
                         'title'      => trim($top->textContent),
                         'nest_level' => 0,
                     ];
@@ -65,46 +67,48 @@ class LitresParser extends Parser implements ParserSourceInterface
                         foreach ($lis[0]->getElementsByTagName('li') as $liKey => $li) {
                             if ($li->parentNode === $lis[0]) {
                                 $sub = $li->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
-                                $data[$key]['children'][$liKey] = [
-                                    'csid'       => '',
-                                    'dump'       => '',
-                                    'alias'      => '',
-                                    'href'       => $sub->getAttribute('href'),
-                                    'title'      => trim($sub->textContent),
-                                    'nest_level' => 1,
-                                ];
-
-                                if (($sublis = $li->getElementsByTagName('ul')) && $sublis->length && $sublis[0]->getElementsByTagName('li')->length) {
-                                    foreach ($sublis[0]->getElementsByTagName('li') as $subliKey => $subli) {
-                                        if ($subli->parentNode === $sublis[0]) {
-                                            $subSub = $subli->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
-                                            $data[$key]['children'][$liKey]['children'][$subliKey] = [
-                                                'csid'       => '',
-                                                'dump'       => '',
-                                                'alias'      => '',
-                                                'href'       => $subSub->getAttribute('href'),
-                                                'title'      => trim($subSub->textContent),
-                                                'nest_level' => 2,
-                                            ];
-
-                                            if (($subSubLis = $subli->getElementsByTagName('ul')) && $subSubLis->length && $subSubLis[0]->getElementsByTagName('li')->length) {
-                                                foreach ($subSubLis[0]->getElementsByTagName('li') as $subSubLiKey => $subSubLi) {
-                                                    if ($subSubLi->parentNode === $subSubLis[0]) {
-                                                        $subSubSub = $subSubLi->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
-                                                        $data[$key]['children'][$liKey]['children'][$subliKey]['children'][] = [
-                                                            'csid'       => '',
-                                                            'dump'       => '',
-                                                            'alias'      => '',
-                                                            'href'       => $subSubSub->getAttribute('href'),
-                                                            'title'      => trim($subSubSub->textContent),
-                                                            'nest_level' => 3,
-                                                        ];
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                if ($sub) {
+                                    $data[$key]['children'][$liKey] = [
+                                        'csid'       => '',
+                                        'dump'       => '',
+                                        'alias'      => '',
+                                        'href'       => $this->processUrl($sub->getAttribute('href')),
+                                        'title'      => trim(preg_replace('/[0-9]/', '', $sub->textContent)),
+                                        'nest_level' => 1,
+                                    ];
                                 }
+
+                                // if (($sublis = $li->getElementsByTagName('ul')) && $sublis->length && $sublis[0]->getElementsByTagName('li')->length) {
+                                //     foreach ($sublis[0]->getElementsByTagName('li') as $subliKey => $subli) {
+                                //         if ($subli->parentNode === $sublis[0]) {
+                                //             $subSub = $subli->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
+                                //             $data[$key]['children'][$liKey]['children'][$subliKey] = [
+                                //                 'csid'       => '',
+                                //                 'dump'       => '',
+                                //                 'alias'      => '',
+                                //                 'href'       => $subSub->getAttribute('href'),
+                                //                 'title'      => trim($subSub->textContent),
+                                //                 'nest_level' => 2,
+                                //             ];
+
+                                //             if (($subSubLis = $subli->getElementsByTagName('ul')) && $subSubLis->length && $subSubLis[0]->getElementsByTagName('li')->length) {
+                                //                 foreach ($subSubLis[0]->getElementsByTagName('li') as $subSubLiKey => $subSubLi) {
+                                //                     if ($subSubLi->parentNode === $subSubLis[0]) {
+                                //                         $subSubSub = $subSubLi->getElementsByTagName('span')[0]->getElementsByTagName('a')[0];
+                                //                         $data[$key]['children'][$liKey]['children'][$subliKey]['children'][] = [
+                                //                             'csid'       => '',
+                                //                             'dump'       => '',
+                                //                             'alias'      => '',
+                                //                             'href'       => $subSubSub->getAttribute('href'),
+                                //                             'title'      => trim($subSubSub->textContent),
+                                //                             'nest_level' => 3,
+                                //                         ];
+                                //                     }
+                                //                 }
+                                //             }
+                                //         }
+                                //     }
+                                // }
                             }
                         }
                     }

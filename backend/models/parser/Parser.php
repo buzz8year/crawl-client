@@ -102,7 +102,7 @@ class Parser implements ParserInterface
      */
     public function setProxies()
     {
-        self::$proxies = self::$source->getProxies()['ipv4'] ?? [];
+        self::$proxies = self::$source->proxies['ipv4'] ?? [];
     }
 
 
@@ -111,7 +111,7 @@ class Parser implements ParserInterface
      */
     public function setAgents()
     {
-        self::$agents = self::$source->getHeaderValues()['user-agent'] ?? [];
+        self::$agents = self::$source->headerValues['user-agent'] ?? [];
     }
 
 
@@ -196,17 +196,18 @@ class Parser implements ParserInterface
         if (!$copt = curl_setopt_array($curl, self::$options)) {
             throw new \Exception('Setting Curl options was not successful.');
         }
-        $data = curl_exec($curl);
+        $response = curl_exec($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
 
-        if (!$data && self::$proxies) {
+
+        if (!$response && self::$proxies) {
             $this->processResponse(1, $url);
             return $this->curlSession($url);
         }
         // if ($info['http_code'] == 403) {
             // if (self::$agents) {
-            if (!$data && self::$agents) {
+            if (!$response && self::$agents) {
                 $this->processResponse(2, $url);
                 return $this->curlSession($url);
             } else {
@@ -214,11 +215,17 @@ class Parser implements ParserInterface
             }
         // }
 
-        if ($data) {
-            // print_r($info);
-            // print_r($data);
-            $this->processResponse(0, $url);
-            return $data;
+        if ($response) {
+            // $captcha = $this->getNodes($response, '//*[contains(@*, \'captcha\')]');
+            // if ($captcha && $captcha->length) {
+            //     $this->processResponse(1, $url);
+            //     $this->processResponse(2, $url);
+            //     return $this->curlSession($url);
+            // }
+            // else {
+                $this->processResponse(0, $url);
+                return $response;
+            // }
         } else {
             return;
             // throw new \Exception('HTTP Code ' . $info['http_code'] . '. Either url or Curl options are bad. URL: ' . $url);
