@@ -82,12 +82,24 @@ class MilliondvdParser extends Parser implements ParserSourceInterface
      */
     public function getWarningData(\DOMNodeList $nodes)
     {
-        foreach ($nodes as $node) {
-            $data[] = 'Не нашли что нужно?';
-        }
-
-        return $data;
     }
+
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = '[.//span[contains(@style, \'line-through\')]]';
+        $xpath = $xpath . $extend;
+
+        return $xpath;
+    }
+
+
+
 
     /**
      * Extracting data from the product item's element of a category/search page

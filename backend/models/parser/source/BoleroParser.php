@@ -29,14 +29,15 @@ class BoleroParser extends Parser implements ParserSourceInterface
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = '';
 
     const DEFINE_CLIENT = 'curl'; // CURLOPT_FOLLOWLOCATION
 
     const PAGER_SPLIT_URL = false;
-
+    // const PAGER_EXCUSE = true;
+    
     static $region;
     static $template;
 
@@ -96,7 +97,7 @@ class BoleroParser extends Parser implements ParserSourceInterface
      */
     public static function xpathSale(string $xpath)
     {
-        $extend = ' and .//div[contains(@class, \'old_price\')]';
+        $extend = ' and .//div[contains(@class, \'product__old-price\')]';
         $explode  = rtrim($xpath, ']');
         $xpath = $explode . $extend . ']';
 

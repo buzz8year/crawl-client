@@ -91,6 +91,26 @@ class Book24Parser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//span[contains(@class, \'price-discount\')]';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array

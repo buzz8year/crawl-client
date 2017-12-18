@@ -101,6 +101,26 @@ class BooksParser extends Parser implements ParserSourceInterface
     {
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        // $extend = ' and .//span[@class=\'price promo\']';
+        $extend = '[.//span[@class=\'price promo\']]';
+        // $explode  = rtrim($xpath, ']');
+        // $xpath = $explode . $extend . ']';
+        $xpath = $xpath . $extend;
+
+        return $xpath;
+    }
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
@@ -135,6 +155,7 @@ class BooksParser extends Parser implements ParserSourceInterface
     public function getSuperData(\DOMNodeList $nodes)
     {
     }
+
 
     /**
      * Getting descriptions data from the object produced by getSuperData()

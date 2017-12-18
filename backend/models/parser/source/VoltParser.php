@@ -22,7 +22,7 @@ class VoltParser extends Parser implements ParserSourceInterface
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//table[contains(@class, \'table-property\')]//td[@class=\'phspace-5\']'; // At Product Page
     const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']//div[contains(@id, \'description\')]'; // At Product Page
-    const XPATH_IMAGE       = '//a[contains(@class, \'product-gallery-thumbnail\')]'; // At Product Page. Full size.
+    const XPATH_IMAGE       = '//a[contains(@class, \'product-gallery-thumbnail\') or @itemprop=\'image\']'; // At Product Page. Full size.
 
     // const CATEGORY_NODE  = ''; // At HomePage navmenu
     const CATEGORY_WRAP_NODE  = '//ul[contains(@class, \'js-menu\')]/li'; // At HomePage navmenu
@@ -97,6 +97,24 @@ class VoltParser extends Parser implements ParserSourceInterface
     public function getWarningData(\DOMNodeList $nodes)
     {
     }
+
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and .//div[contains(@class, \'new-item-list-discount\')]';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
 
     /**
      * Extracting data from the product item's element of a category/search page
