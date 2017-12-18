@@ -143,7 +143,7 @@ class ParserSettler implements ParserSettlingInterface
             ->where([
                 'source_id'   => self::$sourceId,
                 'source_url'  => $category->href,
-                'category_id' => $categoryId,
+                // 'category_id' => $categoryId,
             ])
             ->one();
 

@@ -83,16 +83,18 @@ class OldiParser extends Parser implements ParserSourceInterface
                         'title' => trim($threeNode->getElementsByTagName('a')[0]->textContent),
                     ];
                 }
-                $levelTwoData['children'][] = $levelThreeData;
+                if (isset($levelThreeData)) {
+                    $levelTwoData['children'][] = $levelThreeData;
+                }
             }
 
             // LEVEL ONE Nesting
             $levelOneData['children'][] = $levelTwoData;
 
 
-            if ($tempKey == 4) {
-                break;
-            }
+            // if ($tempKey == 4) {
+            //     break;
+            // }
             // Do not forget to REMOVE
         }
         $data[] = $levelOneData;
@@ -117,7 +119,8 @@ class OldiParser extends Parser implements ParserSourceInterface
      * @return array
      */
 
-    public function getProducts(\DOMNodeList $nodes)
+    // public function getProducts(\DOMNodeList $nodes)
+    public function getProducts($nodes)
     {
         $data = [];
 
