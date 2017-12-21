@@ -14,6 +14,10 @@ class ParseController extends \yii\console\Controller
     public $src;
     public $sale = false;
 
+    /**
+     * Class instance properties
+     * @return array
+     */
     public function options($actionID)
     {
         $options = parent::options($actionID);
@@ -27,6 +31,10 @@ class ParseController extends \yii\console\Controller
         return $options;
     }
 
+    /**
+     * Initiates Parsing (global or by source ID)
+     * @return void
+     */
     public function actionIndex()
     {
         if ($this->src) {
@@ -39,6 +47,10 @@ class ParseController extends \yii\console\Controller
         }
     }
 
+    /**
+     * Lists Sources IDs
+     * @return void
+     */
     public function actionList()
     {
         $sources = Source::find()->where(['status' => 1])->all();
@@ -47,6 +59,10 @@ class ParseController extends \yii\console\Controller
         }
     }
 
+    /**
+     * Lists Sources IDs and their Names
+     * @return void
+     */
     public function actionListName()
     {
         $sources = Source::find()->where(['status' => 1])->all();
@@ -55,20 +71,50 @@ class ParseController extends \yii\console\Controller
         }
     }
 
+    /**
+     * Sync Products to OC
+     * @return void
+     */
     public function actionSync()
     {
         Yii::info('SYNC Goods: ' . PHP_EOL, 'parse-console');
         $this->stdout('SYNC Goods: ' . PHP_EOL);
 
         if ($syncData = OcSettler::saveProducts($this->src ?? null)) {
-            Yii::info('Processed: ' . $syncData['processed'] . PHP_EOL, 'parse-console');
-            Yii::info('Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL, 'parse-console');
+            Yii::info(
+                'Processed: ' . $syncData['processed'] . PHP_EOL . 'Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL,
+                'parse-console'
+            );
 
-            $this->stdout('Processed: ' . $syncData['processed'] . PHP_EOL);
-            $this->stdout('Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL);
+            $this->stdout(
+                'Processed: ' . $syncData['processed'] . PHP_EOL .
+                'Synced/Updated: ' . $syncData['synced'] . '/' . $syncData['updated'] . PHP_EOL
+            );
         }
     }
 
+    /**
+     * Deletes all Misfit Products (those, not in Yii) from OC
+     * @return void
+     */
+    public function actionDeleteMisfits()
+    {
+        if ($data = OcSettler::deleteMisfits()) {
+            $this->stdout(
+                'Total processed: ' . $data['total'] . PHP_EOL .
+                'Misfits deleted: ' . $data['misfits'] . PHP_EOL
+            );
+            Yii::info(
+                'DELETING MISFITS FROM OC' . PHP_EOL . 'Total processed: ' . $data['total'] . PHP_EOL . 'Misfits deleted: ' . $data['misfits'] . PHP_EOL,
+                'parse-console'
+            );
+        }
+    }
+
+    /**
+     * Parses source by ID
+     * @return void
+     */
     public function parseSource(int $sourceId)
     {
         $super       = new Parser();
@@ -97,9 +143,9 @@ class ParseController extends \yii\console\Controller
 
         // SALE: Sale flag
         if ($this->sale === true) {
-            
+
             $model->saleFlag = true;
-            
+
             if (method_exists($model->class, 'xpathSale')) {
                 if ($categories) {
                     $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);

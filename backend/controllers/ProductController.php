@@ -126,8 +126,9 @@ class ProductController extends Controller
      */
     public function actionDeleteMisfits()
     {
-        OcSettler::deleteMisfits();
-        // return $this->redirect(['index']);
+        $data = OcSettler::deleteMisfits();
+        echo 'Total processed: ' . $data['total'] . '<br/>';
+        echo 'Misfits deleted: ' . $data['misfits'] . '<br/>';
     }
 
     /**
