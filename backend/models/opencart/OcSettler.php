@@ -140,10 +140,15 @@ class OcSettler
             FROM oc_product_description
         ')->queryAll();
 
+        $data = [
+            'total' => count($productsOc),
+            'misfits' => 0,
+        ];
+
         foreach ($productsOc as $productOc) {
-            echo($productOc['source_url'] . '<br/>');
             if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
                 $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
+                $data['misfits']++;
             }
         }
 
@@ -152,6 +157,9 @@ class OcSettler
         $db->createCommand('DELETE pc FROM oc_product_description pd RIGHT JOIN oc_product_to_category pc ON pc.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
         $db->createCommand('DELETE pa FROM oc_product_description pd RIGHT JOIN oc_product_attribute pa ON pa.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
         $db->createCommand('DELETE pi FROM oc_product_description pd RIGHT JOIN oc_product_image pi ON pi.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+
+        echo 'Total processed: ' . $data['total'] . '<br/>';
+        echo 'Misfits deleted: ' . $data['misfits'] . '<br/>';
     }
 
 

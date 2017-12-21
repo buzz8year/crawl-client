@@ -127,6 +127,7 @@ class ProductController extends Controller
     public function actionDeleteMisfits()
     {
         OcSettler::deleteMisfits();
+        // return $this->redirect(['index']);
     }
 
     /**
