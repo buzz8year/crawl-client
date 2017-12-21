@@ -62,7 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="form-group pull-right text-right">
-        <span class="btn">В магазине сейчас товаров: <strong><?= $ocProducts ?></strong></span>  &nbsp;  &nbsp;
+        <span class="btn">В магазине сейчас товаров: <strong><?= number_format($ocProducts, 0, '', ',') ?></strong></span>  &nbsp;  &nbsp;
     </div>
 
 
