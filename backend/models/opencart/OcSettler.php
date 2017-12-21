@@ -2,6 +2,7 @@
 
 namespace backend\models\opencart;
 
+use backend\models\parser\ParserProvisioner;
 use backend\models\CategorySource;
 use backend\models\Product;
 use Yii;
@@ -169,49 +170,55 @@ class OcSettler
     {
         $db = self::getDb();
 
-        if ($sourceId) {
-            self::saveCategories($sourceId);
-            $products = Product::find()->where(['source_id' => $sourceId])->all();
-            // $products = Product::find()->where(['source_id' => $sourceId, 'sync_status' => 0])->all();
-        } else {
-            self::saveCategories();
-            $products = Product::find()->all();
-            // $products = Product::find()->where(['sync_status' => 0])->all();
-        }
+        $sources = ParserProvisioner::activeSources();
 
         $data = [
-        	'processed' => 0,
-        	'updated' => 0,
+            'processed' => 0,
+            'updated' => 0,
             'synced' => 0,
         ];
 
-        foreach ($products as $product) {
-            $productExist = $db->createCommand('
-                SELECT * 
-                FROM oc_product_description 
-                WHERE source_url = ' . $db->quoteValue($product->source_url)
-            )->queryOne();
+        foreach ($sources as $srcID => $source) {
+            if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
+                // if ($srcID) {
+                    self::saveCategories($srcID);
+                    $products = Product::find()->where(['source_id' => $srcID])->all();
+                    // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
+                // } else {
+                //     self::saveCategories();
+                //     $products = Product::find()->all();
+                //     // $products = Product::find()->where(['sync_status' => 0])->all();
+                // }
 
-            if (!$productExist && $product->price) {
-                $ocProductId = self::saveProduct($product);
-                $data['synced']++;
+                foreach ($products as $product) {
+                    $productExist = $db->createCommand('
+                        SELECT * 
+                        FROM oc_product_description 
+                        WHERE source_url = ' . $db->quoteValue($product->source_url)
+                    )->queryOne();
+
+                    if (!$productExist && $product->price) {
+                        $ocProductId = self::saveProduct($product);
+                        $data['synced']++;
+                    }
+
+                    elseif ($productExist) {
+                        $ocProductId = $productExist['product_id'];
+                        self::updateProduct($product, $ocProductId);
+                        $data['updated']++;
+                    }
+
+                    self::saveProductStore($ocProductId);
+                    self::saveProductCategory($product, $ocProductId);
+                    self::saveDescription($product, $ocProductId);
+                    self::saveAttributes($product, $ocProductId);
+
+                    $product->sync_status = 1;
+                    $product->save();
+
+                    $data['processed']++;
+                }
             }
-
-            elseif ($productExist) {
-                $ocProductId = $productExist['product_id'];
-                self::updateProduct($product, $ocProductId);
-                $data['updated']++;
-            }
-
-            self::saveProductStore($ocProductId);
-            self::saveProductCategory($product, $ocProductId);
-            self::saveDescription($product, $ocProductId);
-            self::saveAttributes($product, $ocProductId);
-
-            $product->sync_status = 1;
-            $product->save();
-
-            $data['processed']++;
         }
 
         // print_r($data);
