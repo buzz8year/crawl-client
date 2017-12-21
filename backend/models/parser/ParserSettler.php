@@ -277,7 +277,8 @@ class ParserSettler implements ParserSettlingInterface
                         );
                     }
 
-                    $dataDetails[$newProduct->id] = $product['href'];
+                    $url = (isset($product['api_href']) && $product['api_href']) ? $product['api_href'] : $product['href'];
+                    $dataDetails[$newProduct->id] = $url;
 
                 } else {
 
@@ -310,8 +311,8 @@ class ParserSettler implements ParserSettlingInterface
 
                     if (!$descExist) {
                         $newDesc                = new Description();
+                        $newDesc->title         = (isset($desc['title']) && $desc['title']) ? trim($desc['title']) : '';
                         $newDesc->product_id    = $productId;
-                        $newDesc->title         = isset($desc['title']) ? trim($desc['title']) : '';
                         $newDesc->text_original = $text;
                         // $newDesc->text_synonymized = $synonym;
                         // $newDesc->status = $synonym ? 1 : 0;
@@ -357,6 +358,7 @@ class ParserSettler implements ParserSettlingInterface
                     $newValue               = new AttributeValue();
                     $newValue->attribute_id = $attributeExist ? $attributeExist->id : $newAttribute->id;
                     $newValue->value        = trim($attribute['value']);
+
                     // $newValue->save();
                     if (!$newValue->save()) {
                         throw new \Exception('
@@ -378,6 +380,7 @@ class ParserSettler implements ParserSettlingInterface
                     $newProductAttribute->product_id         = $productId;
                     $newProductAttribute->attribute_id       = $attributeExist ? $attributeExist->id : $newAttribute->id;
                     $newProductAttribute->attribute_value_id = $valueExist ? $valueExist->id : $newValue->id;
+
                     // $newProductAttribute->save();
                     if (!$newProductAttribute->save()) {
                         throw new \Exception('
@@ -427,6 +430,7 @@ class ParserSettler implements ParserSettlingInterface
                             $newProductImage->image_id   = $newImage->id;
                             $newProductImage->product_id = $productId;
 
+                            // $newProductImage->save();
                             if (!$newProductImage->save()) {
                                 throw new \Exception('
                                     Error attempting to save product image: ' .
@@ -445,6 +449,7 @@ class ParserSettler implements ParserSettlingInterface
                                 $newProductImage->image_id   = $imageExist->id;
                                 $newProductImage->product_id = $productId;
 
+                                // $newProductImage->save();
                                 if (!$newProductImage->save()) {
                                     throw new \Exception('
                                         Error attempting to save product image: ' .

@@ -15,6 +15,8 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = '%3A%3Acategory%3A';
     const QUERY_KEYWORD  = 'query=';
 
+    const QUERY_PRODUCT_API = '/rest/v1/newRG/products?query=%3A%3Acode%3A';
+
     const XPATH_WARNING = '//html'; // At Catalog/Search Page
     const XPATH_CATALOG = '//html'; // At Catalog/Search Page
     
@@ -134,6 +136,24 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
         return $data;
     }
 
+
+
+
+    // /**
+    //  * @return
+    //  */
+    // public static function xpathSale(string $xpath)
+    // {
+    //     $extend = ' and (.//div[contains(@class, \'price-old\')])';
+    //     $explode  = rtrim($xpath, ']');
+    //     $xpath = $explode . $extend . ']';
+
+    //     return $xpath;
+    // }
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
@@ -142,25 +162,42 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
     public function getProducts($nodes)
     {
         $data = [];
-        $category = CategorySource::find()->where(['source_id' => $_GET['id'],'category_id'=>$_GET['cat']])->one();
+        // $category = CategorySource::find()->where(['source_id' => $_GET['id'],'category_id'=>$_GET['cat']])->one();
 
         foreach ($nodes as $node) {
             $json = json_decode ( $node->nodeValue , true );
             foreach ($json['products'] as $product) {
-                $link  = '/rest/v1/newRG/products?query=%3A%3Acode%3A' . trim ( $product['code'] );
-                $linkExplode = explode ('/', $product['url']);
-                $id    = end($linkExplode);
-                $price = $product['price']['value'];
-                $name  = iconv ( 'UTF-8' , 'ISO-8859-1' , trim ( $product['name'] ) );
-                $href  = $link;
-                if ($href) {
-                    $data[] = [
-                        'id'         => $id,
-                        'name'       => $name,
-                        'price'      => $price,
-                        'href'       => self::$model->domain . $href,
-                        // 'attributes' => [],
-                    ];
+
+                $condition = true;
+
+                if (self::$model->saleFlag === true) {
+                    if (isset($product['discountPrice']) && $product['discountPrice']) {
+                        $condition = true;
+                    }
+                    else {
+                        $condition = false;
+                    }
+                }
+
+                if ($condition) {
+                    $href  = self::$model->domain . '/newstore/p/' . trim($product['code']);
+                    $apiHref  = self::$model->domain . self::QUERY_PRODUCT_API . trim($product['code']);
+                    // $linkExplode = explode ('/', $product['url']);
+                    // $id    = end($linkExplode);
+                    $price = $product[(self::$model->saleFlag ? 'discountPrice' : 'price')]['value'];
+                    $name  = iconv ( 'UTF-8' , 'ISO-8859-1' , trim ( $product['name'] ) );
+                    // $href  = $link;
+                    if ($href) {
+                        $data[] = [
+                            // 'id'         => $id,
+                            'name'       => $name,
+                            'price'      => $price,
+                            'href'       => $href,
+                            'api_href'       => $apiHref,
+                            // 'href'       => self::$model->domain . $href,
+                            // 'attributes' => [],
+                        ];
+                    }
                 }
             }
         }
@@ -225,12 +262,11 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
     public function getImageData($object)
     {
         $data = [];
-            print_r($object);
         if (isset($object['images'])) {
             $thumb = '';
             $original = '';
             foreach ($object['images'] as $image) {
-                if ( $image['format'] == 'product' )
+                if ( $image['format'] == 'productPageDesktop' )
                     $original = self::$model->domain . trim ( $image['url'] );
                 if ( $image['format'] == 'cartThumbnail' )
                     $thumb = self::$model->domain . trim ( $image['url'] );

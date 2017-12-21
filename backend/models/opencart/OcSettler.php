@@ -126,11 +126,37 @@ class OcSettler
     // }
 
 
+    /**
+     * @return
+     */
+    public static function deleteMisfits()
+    {
+        $db = self::getDb();
 
+        $productsYii = Product::find()->select('source_url')->asArray()->all();
+
+        $productsOc = $db->createCommand('
+            SELECT product_id, source_url
+            FROM oc_product_description
+        ')->queryAll();
+
+        foreach ($productsOc as $productOc) {
+            echo($productOc['source_url'] . '<br/>');
+            if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
+                $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
+            }
+        }
+
+        $db->createCommand('DELETE p FROM oc_product_description pd RIGHT JOIN oc_product p ON p.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+        $db->createCommand('DELETE ps FROM oc_product_description pd RIGHT JOIN oc_product_to_store ps ON ps.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+        $db->createCommand('DELETE pc FROM oc_product_description pd RIGHT JOIN oc_product_to_category pc ON pc.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+        $db->createCommand('DELETE pa FROM oc_product_description pd RIGHT JOIN oc_product_attribute pa ON pa.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+        $db->createCommand('DELETE pi FROM oc_product_description pd RIGHT JOIN oc_product_image pi ON pi.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
+    }
 
 
     /**
-     * @return array
+     * @return array, processed data info
      */
     public static function saveProducts(int $sourceId = null)
     {
@@ -166,6 +192,7 @@ class OcSettler
 
             elseif ($productExist) {
                 $ocProductId = $productExist['product_id'];
+                self::updateProduct($product, $ocProductId);
                 $data['updated']++;
             }
 
@@ -195,10 +222,11 @@ class OcSettler
         $db = self::getDb();
 
         $db->createCommand('
-            INSERT INTO oc_product (image, price, status, quantity)
+            INSERT INTO oc_product (image, price, date_added, status, quantity)
             VALUES (
                 ' . $db->quoteValue($product->images ? $product->images[0]['source_url'] : '') . ',
                 ' . $db->quoteValue($product->price_new ? $product->price_new : $product->price) . ',
+                CURRENT_TIMESTAMP,
                 1,
                 1
             )'
@@ -208,6 +236,20 @@ class OcSettler
     }
 
 
+    /**
+     * @return int
+     */
+    public static function updateProduct($product, int $ocProductId)
+    {
+        $db = self::getDb();
+
+        $db->createCommand('
+            UPDATE oc_product
+            SET price = ' . $db->quoteValue($product->price_new ? $product->price_new : $product->price) . ',
+                date_modified = CURRENT_TIMESTAMP
+            WHERE product_id = ' . $ocProductId
+        )->execute();
+    }
 
 
 

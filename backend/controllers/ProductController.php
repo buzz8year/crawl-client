@@ -124,9 +124,18 @@ class ProductController extends Controller
      * Deletes all Products and theit details.
      * @return mixed
      */
+    public function actionDeleteMisfits()
+    {
+        OcSettler::deleteMisfits();
+    }
+
+    /**
+     * Deletes all Products and theit details.
+     * @return mixed
+     */
     public function actionDeleteAll()
     {
-       $this->deleteProducts();
+        $this->deleteProducts();
         return $this->redirect(['index']);
     }
 

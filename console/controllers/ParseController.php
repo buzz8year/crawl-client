@@ -77,10 +77,6 @@ class ParseController extends \yii\console\Controller
         $model  = $super->createModel($sourceId);
         $parser = new $model->class();
 
-        if ($this->sale === true) {
-            $model->saleFlag = true;
-        }
-
         $this->stdout(
             PHP_EOL . PHP_EOL .
             str_repeat('|', mb_strlen($model->title)) .
@@ -98,51 +94,62 @@ class ParseController extends \yii\console\Controller
         Yii::info('Categories to parse: ' . count($categories) . PHP_EOL, 'parse-console');
         Yii::info('Keywords to parse: ' . count($keywords) . PHP_EOL, 'parse-console');
 
-        // if ($keywords) {
-        //     $this->stdout('ITERATE: Keywords' . PHP_EOL . PHP_EOL);
 
-        //     foreach ($keywords as $keywordId => $keyword) {
-        //         $model->keywordId = $keywordId;
-        //         $model->url       = $parser->urlBuild('', '', $keyword);
+        // SALE: Sale flag
+        if ($this->sale === true) {
+            
+            $model->saleFlag = true;
+            
+            if (method_exists($model->class, 'xpathSale')) {
+                if ($categories) {
+                    $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);
+                    foreach ($categories as $key => $category) {
 
-        //         if ($productsReturn = $parser->parseProducts()) {
-        //             $this->stdout(
-        //                 $model->url . PHP_EOL .
-        //                 $productsReturn . ' Products' . PHP_EOL
-        //             );
-        //             Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
-        //         }
-        //         if ($detailsReturn = $parser->parseDetails()) {
-        //             $parser->syncProducts();
+                        $model->categorySourceId = $category['csid'];
+                        $model->categoryId       = $category['id'];
 
-        //             $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
-        //             Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
-        //         } else {
-        //             $this->stdout('.' . PHP_EOL);
-        //         }
-        //     }
-        // }
+                        $model->url = $parser->urlBuild('', $category['csid'], '');
 
-        if ($categories) {
-            $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);
-            foreach ($categories as $key => $category) {
+                        if ($productsReturn = $parser->parseProducts()) {
+                            $this->stdout($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL);
+                            Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
+                        }
+                        if ($detailsReturn = $parser->parseDetails()) {
+                            // $parser->syncProducts();
 
-                $model->categorySourceId = $category['csid'];
-                $model->categoryId       = $category['id'];
-
-                $model->url = $parser->urlBuild('', $category['csid'], '');
-
-                if ($productsReturn = $parser->parseProducts()) {
-                    $this->stdout($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL);
-                    Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
+                            $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
+                            Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
+                        } else {
+                            $this->stdout('.' . PHP_EOL);
+                        }
+                    }
                 }
-                if ($detailsReturn = $parser->parseDetails()) {
-                    // $parser->syncProducts();
+            } 
 
-                    $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
-                    Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
-                } else {
-                    $this->stdout('.' . PHP_EOL);
+            else {
+                if ($keywords) {
+                    $this->stdout('ITERATE: Keywords' . PHP_EOL . PHP_EOL);
+
+                    foreach ($keywords as $keywordId => $keyword) {
+                        $model->keywordId = $keywordId;
+                        $model->url       = $parser->urlBuild('', '', $keyword);
+
+                        if ($productsReturn = $parser->parseProducts()) {
+                            $this->stdout(
+                                $model->url . PHP_EOL .
+                                $productsReturn . ' Products' . PHP_EOL
+                            );
+                            Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
+                        }
+                        if ($detailsReturn = $parser->parseDetails()) {
+                            $parser->syncProducts();
+
+                            $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
+                            Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
+                        } else {
+                            $this->stdout('.' . PHP_EOL);
+                        }
+                    }
                 }
             }
         }

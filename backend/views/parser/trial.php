@@ -142,7 +142,7 @@ echo Breadcrumbs::widget([
                             'selected' => true
                         ],
                     ],
-                    'onchange'  => 'location = \'index.php?r=parser/trial&reg=\' + $(this).val() + \'&id=' . $model->id . '&word=' . $model->regionId . '&cat=' . $model->categoryId . '\';',
+                    'onchange'  => 'location = \'index.php?r=parser/trial&reg=\' + $(this).val() + \'&id=' . $model->id . '&word=' . $model->regionId . '&cat=' . $model->categorySourceId . '\';',
                     'prompt'    => '-- Region --'
                 ]);
             } ?><br/>
@@ -180,7 +180,7 @@ echo Breadcrumbs::widget([
                     'disabled' => false,
                     'onchange'  => '
                         var keyword = $(this).val() ? $(this).find(\':selected\').text() : \'\';
-                        location = \'index.php?r=parser/trial&word=\' + keyword + \'&id=' . $model->id . '&reg=' . $model->regionId . '&cat=' . $model->categoryId . '\';
+                        location = \'index.php?r=parser/trial&word=\' + keyword + \'&id=' . $model->id . '&reg=' . $model->regionId . '&cat=' . $model->categorySourceId . '\';
                     ',
                 ]); 
             ?><br/>

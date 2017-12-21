@@ -16,10 +16,12 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = 'menu_id=';
     const QUERY_KEYWORD  = 'text=';
 
-    const QUERY_INSTOCK  = 'available=';
+    const QUERY_INSTOCK  = 'available=1';
+    const QUERY_SALE     = 'status=468661653';
 
     const XPATH_WARNING = ''; // At Catalog/Search Page
-    const XPATH_CATALOG = '//div[@data-list-id=\'main\']'; // At Catalog/Search Page
+    const XPATH_PAGER   = '//div[@class=\'page_listing\']//a[@data-page]'; // Pagination
+    const XPATH_CATALOG = '//div[@class=\'product_category_list\']//div[@data-list-id=\'main\']'; // At Catalog/Search Page
 
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//table[@class=\'product_features\']//tr'; // At Product Page
@@ -30,10 +32,10 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     // const CATEGORY_WRAP_NODE  = '//*[contains(@class, \'sub-wrap\')]'; // At HomePage navmenu
     // const CATEGORY_WRAP_CLASS = 'catalog-subcatalog'; // At Level One Category Page leftmenu
 
-    const PAGER_EXCUSE = 1;
+    // const PAGER_EXCUSE = 1;
 
     // const DEFINE_CLIENT = 'phantom'; // CURLOPT_FOLLOWLOCATION
-    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
 
     static $region;
 
@@ -90,24 +92,37 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
     }
 
 
-
-
     /**
-     * @return
+     * @return int
      */
-    public static function xpathSale(string $xpath)
-    {
-        $extend = ' and (
-            contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or
-            contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or
-            contains(translate(string(), \'СКИДК\', \'cкидк\'), \'cкидк\') or
-            contains(translate(string(), \'РАСПРОДАЖ\', \'распродаж\'), \'распродаж\')
-        )';
-        $explode  = rtrim($xpath, ']');
-        $xpath = $explode . $extend . ']';
-
-        return $xpath;
+    public static function lastPage($nodes)
+    {       
+        foreach ($nodes as $key => $node) {
+            if ($key == ($nodes->length - 1)) {
+                return (int)$node->getAttribute('data-page');
+            }
+        }
     }
+
+
+
+
+    // /**
+    //  * @return string
+    //  */
+    // public static function xpathSale(string $xpath)
+    // {
+    //     $extend = ' and (
+    //         contains(translate(string(), \'SALE\', \'sale\'), \'sale\') or
+    //         contains(translate(string(), \'АКЦИ\', \'акци\'), \'акци\') or
+    //         contains(translate(string(), \'СКИДК\', \'cкидк\'), \'cкидк\') or
+    //         contains(translate(string(), \'РАСПРОДАЖ\', \'распродаж\'), \'распродаж\')
+    //     )';
+    //     $explode  = rtrim($xpath, ']');
+    //     $xpath = $explode . $extend . ']';
+
+    //     return $xpath;
+    // }
 
 
 
@@ -219,7 +234,11 @@ class CitiLinkParser extends Parser implements ParserSourceInterface
         $url = '';
 
         if ($categorySourceId && !$keyword) {
-            $url = $this->processUrl($category->source_url);
+            // $url = $this->processUrl($category->source_url);
+            $url = $this->processUrl($category->source_url) . '?' . self::QUERY_INSTOCK;
+            if (self::$model->saleFlag === true) {
+                $url .= '&' . self::QUERY_SALE;
+            }
         }
 
         // if ($categorySourceId && $keyword) {

@@ -391,6 +391,13 @@ class Parser implements ParserInterface
 
             if (isset($dataObject)) {
 
+                if ($type == 'details') {
+                    $data['description'] = $this->getDescriptionData($dataObject);
+                    $data['attribute'] = $this->getAttributeData($dataObject);
+                    $data['image'] = $this->getImageData($dataObject);
+                    return $data;
+                }
+
                 if ($type == 'description') {
                     return $this->getDescriptionData($dataObject);
                 } elseif ($type == 'attribute') {
@@ -547,31 +554,46 @@ class Parser implements ParserInterface
         $dataProducts = [];
         $dataDetails  = [];
 
-        $warnings = $this->parse('warning', self::$model->url);
+        // $warnings = $this->parse('warning', self::$model->url);
 
         // if (!$warnings) {
 
-            $excuse = defined(self::$model->class . '::PAGER_EXCUSE') && self::$model->class::PAGER_EXCUSE;
             $page = 0;
 
+            $excuse = defined(self::$model->class . '::PAGER_EXCUSE') && self::$model->class::PAGER_EXCUSE;
+            // $condition = ($last === end($data) && !$excuse) || $page == 4;
+            // $condition = $last === end($data) || $page > self::$model->limitPage;
+
+            // PAGER: If method defined, get and stop at last page.
+            // TODO: Rewrite (move to parse() method or elsewhere) - not to make excessive requests.
+            if (defined(self::$model->class . '::XPATH_PAGER') && self::$model->class::XPATH_PAGER) {
+                if (method_exists(self::$model->class, 'lastPage')) {
+                    $lastPage = self::$model->class::lastPage($this->getNodes($this->curlSession(self::$model->url), self::$model->class::XPATH_PAGER));
+                }
+            }
+
+
             while ($data = $this->parse('catalog', self::$model->url, $this->pageQuery($page, self::$model->url))) {
-                $last = end($dataProducts);
                 $page++;
+                
+                // LAST PRODUCT: Last product of every next page. When source returns non-empty results, even if last page is passed over.
+                if (end($dataProducts) === end($data)) {
+                    if (!$excuse) {
+                        break;
+                    }
+                }
 
-
-                // if ($last === end($data) || $page > self::$model->limitPage) {
-                // if ($last === end($data) || $page == 3) {
-                // if (($last === end($data) && !$excuse) || $page == 4) {
-                // if (($last === end($data) && !$excuse) || $page == 4) {
-                if ($last === end($data) && !$excuse) {
-                // if (false) {
-                    break;
-                } else {
+                else {
                     foreach ($data as $product) {
                         if ($product) {
                             $dataProducts[] = $product;
                         }
                     }
+                }
+
+                // LAST PAGE
+                if (isset($lastPage) && $page === $lastPage) {
+                    break;
                 }
             }
 
@@ -616,6 +638,7 @@ class Parser implements ParserInterface
 
         foreach ($details as $id => $url) {
             $detailsData = $this->parse('details', $url);
+
 
             if (isset($detailsData['description']) && count($detailsData['description'])) {
                 $settler->saveDescriptions($detailsData['description'], (int)$id);

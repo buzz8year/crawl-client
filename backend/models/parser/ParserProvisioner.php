@@ -245,27 +245,27 @@ class ParserProvisioner implements ParserProvisioningInterface
     {
         // $html = '';
 
-        foreach ($categories as $category) {
+        foreach ($categories as $categorySource) {
 
-            if (is_object($category)) {
-                $category = (array)$category;
+            if (is_object($categorySource)) {
+                $categorySource = (array)$categorySource;
             }
 
-            $title    = $category['source_url'] ? $category['source_url'] : 'В рамках данного ресурса это раздел - не категория, - раскройте и выберите категорию имеющую адрес.';
-            $selected = $currentCategoryId == $category['id'] ? 'selected' : '';
-            $padding  = $category['nest_level'] * 30 + 40;
+            $title    = $categorySource['source_url'] ? $categorySource['source_url'] : 'В рамках данного ресурса это раздел - не категория, - раскройте и выберите категорию имеющую адрес.';
+            $selected = $currentCategoryId == $categorySource['id'] ? 'selected' : '';
+            $padding  = $categorySource['nest_level'] * 30 + 40;
 
             $onclick  = '';
-            if ($category['source_url']) {
-                $onclick = 'categoryOnSelect(' . $sourceId . ', ' . ($regionId ? $regionId : '\'\'') . ', ' . $category['id'] . ');';
+            if ($categorySource['source_url']) {
+                $onclick = 'categoryOnSelect(' . $sourceId . ', ' . ($regionId ? $regionId : '\'\'') . ', ' . $categorySource['id'] . ');';
             }
 
             $expand = '';
-            if (isset($category['children']) && count($category['children'])) {
+            if (isset($categorySource['children']) && count($categorySource['children'])) {
                 $expand = '<span class="tree-expand ' . ($selected ? 'selected' : '') . '"></span>';
             }
 
-            $htmlWrap = $category['nest_level'] == 0 ? [
+            $htmlWrap = $categorySource['nest_level'] == 0 ? [
                 '<div class="col-xs-12"><div class="row expanded">',
                 '</div></div>',
             ] : ['', ''];
@@ -282,11 +282,11 @@ class ParserProvisioner implements ParserProvisioningInterface
             echo $htmlWrap[0];
             echo $htmlDiv[0];
             echo $htmlSpan[0];
-            echo $category['title'] ? $category['title'] : 'NONCAT';
+            echo $categorySource['title'] ? $categorySource['title'] : 'NONCAT';
             echo $htmlSpan[1];
 
-            if (isset($category['children']) && count($category['children'])) {
-                self::displayNestedSelect($category['children'], $sourceId, $regionId, $currentCategoryId);
+            if (isset($categorySource['children']) && count($categorySource['children'])) {
+                self::displayNestedSelect($categorySource['children'], $sourceId, $regionId, $currentCategoryId);
             }
 
             echo $htmlDiv[1];
