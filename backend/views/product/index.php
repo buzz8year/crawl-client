@@ -61,6 +61,10 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php endif; ?>
     </div>
 
+    <div class="form-group pull-right text-right">
+        <span class="btn">В магазине сейчас товаров: <strong><?= $ocProducts ?></strong></span>  &nbsp;  &nbsp;
+    </div>
+
 
 
     <?= Html::a('Create Product', ['create'], ['class' => 'btn btn-success']) ?><br/><br/>
@@ -153,6 +157,7 @@ $this->params['breadcrumbs'][] = $this->title;
             //'price_new_last_update',
             //'track_price',
             'sync_status',
+            'date_created',
 
             ['class' => 'yii\grid\ActionColumn'],
         ],

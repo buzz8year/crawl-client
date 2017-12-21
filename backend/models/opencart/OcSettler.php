@@ -38,6 +38,21 @@ class OcSettler
 
 
 
+    /**
+     * @return int
+     */
+    public static function countProducts()
+    {
+        $db = self::getDb();
+
+        $data = $db->createCommand('
+            SELECT COUNT(*) AS total 
+            FROM oc_product_description
+        ')->queryAll();
+
+        return $data[0]['total'];
+    }
+
 
     /**
      * @return array

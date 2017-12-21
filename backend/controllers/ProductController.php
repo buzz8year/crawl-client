@@ -41,6 +41,8 @@ class ProductController extends Controller
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        $ocProducts = OcSettler::countProducts();
+
         $syncData = [];
 
         if (Yii::$app->request->post('syncGoods')) {
@@ -50,6 +52,7 @@ class ProductController extends Controller
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'ocProducts' => $ocProducts,
             'syncData' => $syncData,
         ]);
     }
