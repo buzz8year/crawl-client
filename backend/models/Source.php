@@ -260,13 +260,13 @@ class Source extends \yii\db\ActiveRecord
 
     public function getProductUrls()
     {
-        // return ArrayHelper::map( Product::find()->all(), 'id', 'source_url' );
-        $products = Yii::$app->db->createCommand('
-            SELECT id, source_url
-            FROM product
-        ')->queryAll();
+        return ArrayHelper::map( Product::find()->where(['source_id' => $this->id])->all(), 'id', 'source_url' );
+        // $products = Yii::$app->db->createCommand('
+        //     SELECT id, source_url
+        //     FROM product
+        // ')->queryAll();
         
-        return ArrayHelper::map($products, 'id', 'source_url');
+        // return ArrayHelper::map($products, 'id', 'source_url');
     }
 
 
