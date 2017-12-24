@@ -129,7 +129,9 @@ class ParseController extends \yii\console\Controller
                 'UPDATING DETAILS of all (' . count($presentProducts) . ') ' . $model->title . ' Products' .
                 PHP_EOL
             );
-            $parser->parseDetails($presentProducts);
+            foreach ($presentProducts as $id => $product) {
+                $parser->parseDetails([$id => $product]);
+            }
 
             // PRINT: Stdout console
             $this->stdout('Done' . PHP_EOL);
@@ -176,7 +178,7 @@ class ParseController extends \yii\console\Controller
             if ($this->sale === true) {
                 $model->saleFlag = true;
             }
-            
+
             if (method_exists($model->class, 'xpathSale')) {
                 if ($categories) {
                     $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);
