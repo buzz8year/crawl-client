@@ -275,6 +275,7 @@ class OcSettler
         $db->createCommand('
             UPDATE oc_product
             SET price = ' . $db->quoteValue($product->price_new ? $product->price_new : $product->price) . ',
+                image = ' . $db->quoteValue($product->images ? $product->images[0]['source_url'] : '') . ',
                 date_modified = CURRENT_TIMESTAMP
             WHERE product_id = ' . $ocProductId
         )->execute();

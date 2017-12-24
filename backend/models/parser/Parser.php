@@ -593,6 +593,7 @@ class Parser implements ParserInterface
 
                 // LAST PAGE
                 if (isset($lastPage) && $page === $lastPage) {
+                // if ($page == 1) {
                     break;
                 }
             }

@@ -363,8 +363,8 @@ class ParserSettler implements ParserSettlingInterface
                     if (!$newValue->save()) {
                         throw new \Exception('
                             Error attempting to save product image: ' .
-                            PHP_EOL . '$newValue->attribute_id        = ' . $attributeExist ? $attributeExist->id : $newAttribute->id .
-                            PHP_EOL . '$newValue->value   = ' . $newValue->value
+                            PHP_EOL . '$newValue->attribute_id = ' . ($attributeExist ? $attributeExist->id : $newAttribute->id) .
+                            PHP_EOL . '$newValue->value = ' . $newValue->value
                         );
                     }
                 }

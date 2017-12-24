@@ -57,7 +57,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <?= Html::submitButton('Выгрузить все товары в магазин', ['class' => 'btn btn-primary', 'name' => 'syncGoods', 'value' => 1]) ?>  &nbsp;  &nbsp;
         <?php ActiveForm::end();?>
         <?php if ($syncData) : ?>
-            <span style="position:relative;top:20px">Обработано: <b><?= $syncData['processed'] ?></b>, Синхронизировано: <b><?= $syncData['synced'] ?></b></span><br/>
+            <span class="pull-left" style="position:relative;top:20px">Обработано: <b><?= $syncData['processed'] ?></b>, Синхр.: <b><?= $syncData['synced'] ?></b></span><br/>
         <?php endif; ?>
     </div>
 

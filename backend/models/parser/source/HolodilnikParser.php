@@ -20,7 +20,7 @@ class HolodilnikParser extends Parser implements ParserSourceInterface
     const XPATH_SUPER       = ''; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//div[@class=\'det-content-block\']//tr'; // At Product Page
     const XPATH_DESCRIPTION = '//div[@itemprop=\'description\']'; // At Product Page
-    const XPATH_IMAGE       = '//div[@class=\'fotos_box\']//img'; // At Product Page. Full size.
+    const XPATH_IMAGE       = '//img[@class=\'img_big\']'; // At Product Page. Full size.
 
     const LEVEL_ONE_CATEGORY_NODE  = ''; // At HomePage navmenu
     const LEVEL_ONE_CATEGORY_CLASS = ''; // At Level One Category Page leftmenu
@@ -177,10 +177,15 @@ class HolodilnikParser extends Parser implements ParserSourceInterface
     {
         $data = [];
         foreach ($object as $node) {
-            $data[] = [
-                'title' => $node->getElementsByTagName('td')[0]->textContent,
-                'value' => $node->getElementsByTagName('td')[1]->textContent,
-            ];
+            if ($node->getElementsByTagName('td') 
+                && $node->getElementsByTagName('td')->length == 2
+                && $node->getElementsByTagName('td')[1]->getElementsByTagName('span')
+                && $node->getElementsByTagName('td')[1]->getElementsByTagName('span')->length) {
+                    $data[] = [
+                        'title' => trim($node->getElementsByTagName('td')[0]->getElementsByTagName('span')[0]->textContent),
+                        'value' => trim($node->getElementsByTagName('td')[1]->textContent),
+                    ];
+            }
         }
         return $data;
     }
@@ -193,10 +198,12 @@ class HolodilnikParser extends Parser implements ParserSourceInterface
     {
         $data = [];
         foreach ($object as $node) {
-            $fullsize = $node->parentNode->getAttribute('rel') ?? $node->parentNode->getAttribute('href');
+            $medium = $node->getAttribute('src');
+            $fullsize = str_replace('/medium/', '/big/', $medium);
+            $thumb = str_replace('/medium/', '/small/', $medium);
             $data[] = [
                 'fullsize' => $fullsize,
-                'thumb' => $node->getAttribute('src'),
+                'thumb' => $thumb,
             ];
         }
         return $data;
