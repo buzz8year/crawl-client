@@ -653,7 +653,9 @@ class Parser implements ParserInterface
 
             $detailsCount++;
 
-            // is
+            // if ($detailsCount == 2) {
+            //     break;
+            // }
         }
 
         return $detailsCount;

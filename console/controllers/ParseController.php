@@ -22,12 +22,9 @@ class ParseController extends \yii\console\Controller
     {
         $options = parent::options($actionID);
         if ($actionID == 'index') {
-            $options[] = 'src';
             $options[] = 'sale';
         }
-        if ($actionID == 'sync') {
-            $options[] = 'src';
-        }
+        $options[] = 'src';
         return $options;
     }
 
@@ -111,6 +108,38 @@ class ParseController extends \yii\console\Controller
         }
     }
 
+
+
+
+    /**
+     * Sync Products to OC
+     * @return void
+     */
+    public function actionUpdateDetails()
+    {
+        if ($this->src) {
+            $super  = new Parser();
+            $model  = $super->createModel($this->src);
+            $parser = new $model->class();
+
+            $presentProducts = Source::findOne($model->id)->productUrls;
+            // PRINT: Stdout console
+            $this->stdout(
+                PHP_EOL . PHP_EOL .
+                'UPDATING DETAILS of all (' . count($presentProducts) . ') ' . $model->title . ' Products' .
+                PHP_EOL
+            );
+            $parser->parseDetails($presentProducts);
+
+            // PRINT: Stdout console
+            $this->stdout('Done' . PHP_EOL);
+            // LOG: console/runtime/logs/parse.log
+            Yii::info('UPDATING DETAILS of all (' . count($presentProducts) . ') ' . $model->title . ' Products' . PHP_EOL . 'Done', 'parse-console');
+        }
+    }
+
+
+
     /**
      * Parses source by ID
      * @return void
@@ -188,7 +217,7 @@ class ParseController extends \yii\console\Controller
                             Yii::info($model->url . PHP_EOL . $productsReturn . ' Products' . PHP_EOL, 'parse-console');
                         }
                         if ($detailsReturn = $parser->parseDetails()) {
-                            $parser->syncProducts();
+                            // $parser->syncProducts();
 
                             $this->stdout($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL);
                             Yii::info($detailsReturn . ' Detailed' . PHP_EOL . PHP_EOL, 'parse-console');
