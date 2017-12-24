@@ -12,7 +12,7 @@ use Yii;
 class ParseController extends \yii\console\Controller
 {
     public $src;
-    public $sale = false;
+    public $sale;
 
     /**
      * Class instance properties
@@ -171,10 +171,12 @@ class ParseController extends \yii\console\Controller
 
 
         // SALE: Sale flag
-        if ($this->sale === true) {
+        // if ($this->sale === true) {
 
-            $model->saleFlag = true;
-
+            if ($this->sale === true) {
+                $model->saleFlag = true;
+            }
+            
             if (method_exists($model->class, 'xpathSale')) {
                 if ($categories) {
                     $this->stdout(PHP_EOL . PHP_EOL . 'ITERATE: Categories' . PHP_EOL . PHP_EOL);
@@ -227,6 +229,6 @@ class ParseController extends \yii\console\Controller
                     }
                 }
             }
-        }
+        // }
     }
 }
