@@ -136,13 +136,23 @@ class ParserController extends Controller
         }
 
 
-        // PARSE: Products' details
+        // PARSE: Product details
         $detailsParsed = 0;
 
         if ($urlProducts = json_decode(Yii::$app->request->post('parseDetails'), true)) {
             $parser->parseDetails($urlProducts);
             $detailsParsed = count($urlProducts);
         }
+
+
+        // PARSE: Details of all already present products
+        $detailsParsed = 0;
+
+        if (Yii::$app->request->post('updateDetails')) {
+            $presentProducts = Source::findOne($model->id)->productUrls;
+            $parser->parseDetails($presentProducts);
+        }
+
 
         // SYNC: Products
         $syncData = [];

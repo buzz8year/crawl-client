@@ -71,6 +71,17 @@ echo Breadcrumbs::widget([
 
             <div class="form-group pull-right text-right text-muted">
                 <?= Html::submitButton(
+                        'Обновить детализацию (' . count(Source::findOne($model->id)->products) . ') товаров', 
+                        [
+                            'name'  => 'updateDetails', 
+                            'class' => 'btn btn-white', 
+                            'value' => 1, 
+                            'disabled' => !(bool)count(Source::findOne($model->id)->products),
+                            'title' => 'Обновить детализацию всех имеющ. товаров ресурса',
+                        ]
+                    ) 
+                ?><br/><br/>
+                <?= Html::submitButton(
                         'Выгрузить в магазин', 
                         [
                             'name'  => 'syncGoods', 

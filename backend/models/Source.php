@@ -258,6 +258,12 @@ class Source extends \yii\db\ActiveRecord
     }
 
 
+    public function getProductUrls()
+    {
+        return ArrayHelper::map( Product::find()->all(), 'id', 'source_url' );
+    }
+
+
 
     public function getKeywordSources()
     {
