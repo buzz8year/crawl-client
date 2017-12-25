@@ -75,13 +75,14 @@ echo Breadcrumbs::widget([
                         [
                             'name'  => 'updateDetails', 
                             'class' => 'btn btn-white', 
+                            'style' => 'display: block',
                             'value' => 1, 
                             'disabled' => !(bool)count(Source::findOne($model->id)->products),
                             'title' => 'Обновить детализацию всех имеющ. товаров ресурса',
                         ]
                     ) 
                 ?>
-                <br/><br/>
+                <br/>
                 <?= Html::submitButton(
                         'Выгрузить в магазин', 
                         [

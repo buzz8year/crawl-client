@@ -592,8 +592,8 @@ class Parser implements ParserInterface
                 }
 
                 // LAST PAGE
-                if (isset($lastPage) && $page === $lastPage) {
-                // if ($page == 1) {
+                // if (isset($lastPage) && $page === $lastPage) {
+                if ($page == 1) {
                     break;
                 }
             }
@@ -653,9 +653,9 @@ class Parser implements ParserInterface
 
             $detailsCount++;
 
-            // if ($detailsCount == 2) {
-            //     break;
-            // }
+            if ($detailsCount == 2) {
+                break;
+            }
         }
 
         return $detailsCount;
