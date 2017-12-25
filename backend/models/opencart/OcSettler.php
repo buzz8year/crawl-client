@@ -166,7 +166,7 @@ class OcSettler
                 $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
                 $data['misfits']++;
             }
-            if ($key % 100 == 0 || $product == end($products)) {
+            if ($key % 100 == 0 || $productOc == end($productsOc)) {
                 print_r($key . ' -> ');
             }
         }
