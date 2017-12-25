@@ -235,6 +235,10 @@ class OcSettler
                     $product->save();
 
                     $data['processed']++;
+
+                    if ($data['processed'] % 100 == 0 || $product == end($products)) {
+                        print_r($key . ' -> ');
+                    }
                 }
             }
         }
