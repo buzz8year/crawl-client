@@ -112,34 +112,45 @@ class ParseController extends \yii\console\Controller
 
 
     /**
-     * Sync Products to OC
      * @return void
      */
     public function actionUpdateDetails()
     {
         if ($this->src) {
-            $super  = new Parser();
-            $model  = $super->createModel($this->src);
-            $parser = new $model->class();
-
-            $presentProducts = Source::findOne($model->id)->emptyProducts;
-            // PRINT: Stdout console
-            $this->stdout(
-                PHP_EOL . PHP_EOL .
-                'UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' .
-                PHP_EOL
-            );
-            $parser->parseDetails($presentProducts);
-
-            // PRINT: Stdout console
-            $this->stdout('Done' . PHP_EOL);
-            // LOG: console/runtime/logs/parse.log
-            Yii::info('UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' . PHP_EOL . 'Done', 'parse-console');
+            $this->updateDetails($this->src);
         }
-
         else {
-            $this->stdout('Source ID must be defined: --src={id}' . PHP_EOL);
+            $sources = Source::find()->where(['status' => 1])->all();
+            foreach ($sources as $source) {
+                $this->updateDetails($source->id);
+            }
         }
+    }
+
+
+
+    /**
+     * @return void
+     */
+    public function updateDetails(int $sourceID)
+    {
+        $super  = new Parser();
+        $model  = $super->createModel($sourceID);
+        $parser = new $model->class();
+
+        $presentProducts = Source::findOne($model->id)->emptyProducts;
+        // PRINT: Stdout console
+        $this->stdout(
+            PHP_EOL . PHP_EOL .
+            'UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' .
+            PHP_EOL
+        );
+        $parser->parseDetails($presentProducts);
+
+        // PRINT: Stdout console
+        $this->stdout('Done' . PHP_EOL);
+        // LOG: console/runtime/logs/parse.log
+        Yii::info('UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' . PHP_EOL . 'Done', 'parse-console');
     }
 
 
