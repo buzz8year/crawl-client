@@ -155,11 +155,11 @@ class ParseController extends \yii\console\Controller
         $products = $db->createCommand('
             SELECT * 
             FROM product
-            WHERE source_id = 27
+            WHERE source_id = 26
         ')->queryAll();
 
         $urls = [];
-        foreach ($products as $product) {
+        foreach ($products as $key => $product) {
             $exp = explode(';', $product['source_url']);
 
             if (!in_array($exp[0], $urls)) {
@@ -174,6 +174,10 @@ class ParseController extends \yii\console\Controller
                     DELETE FROM product
                     WHERE id = ' . $product['id']
                 )->execute();
+            }
+
+            if ($key % 100 == 0 || $product == end($products)) {
+                $this->stdout($key . ' -> ');
             }
         }
     }
