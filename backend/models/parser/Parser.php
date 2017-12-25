@@ -640,7 +640,6 @@ class Parser implements ParserInterface
         foreach ($details as $id => $url) {
             $detailsData = $this->parse('details', $url);
 
-
             if (isset($detailsData['description']) && count($detailsData['description'])) {
                 $settler->saveDescriptions($detailsData['description'], (int)$id);
             }
@@ -652,6 +651,10 @@ class Parser implements ParserInterface
             }
 
             $detailsCount++;
+
+            // if ($detailsCount % 100 == 0 || $url == end($details)) {
+                print_r($detailsCount . ' > ');
+            // }
 
             // if ($detailsCount == 2) {
             //     break;
