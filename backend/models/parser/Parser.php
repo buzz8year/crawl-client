@@ -637,28 +637,30 @@ class Parser implements ParserInterface
 
         $details = $urlProducts ? $urlProducts : self::$model->details;
 
-        foreach ($details as $id => $url) {
-            $detailsData = $this->parse('details', $url);
+        if ($details) {
+            foreach ($details as $id => $url) {
+                $detailsData = $this->parse('details', $url);
 
-            if (isset($detailsData['description']) && count($detailsData['description'])) {
-                $settler->saveDescriptions($detailsData['description'], (int)$id);
+                if (isset($detailsData['description']) && count($detailsData['description'])) {
+                    $settler->saveDescriptions($detailsData['description'], (int)$id);
+                }
+                if (isset($detailsData['attribute']) && count($detailsData['attribute'])) {
+                    $settler->saveAttributes($detailsData['attribute'], (int)$id);
+                }
+                if (isset($detailsData['image']) && count($detailsData['image'])) {
+                    $settler->saveImages($detailsData['image'], (int)$id);
+                }
+
+                $detailsCount++;
+
+                // if ($detailsCount % 100 == 0 || $url == end($details)) {
+                    print_r($detailsCount . ' > ');
+                // }
+
+                // if ($detailsCount == 2) {
+                //     break;
+                // }
             }
-            if (isset($detailsData['attribute']) && count($detailsData['attribute'])) {
-                $settler->saveAttributes($detailsData['attribute'], (int)$id);
-            }
-            if (isset($detailsData['image']) && count($detailsData['image'])) {
-                $settler->saveImages($detailsData['image'], (int)$id);
-            }
-
-            $detailsCount++;
-
-            // if ($detailsCount % 100 == 0 || $url == end($details)) {
-                print_r($detailsCount . ' > ');
-            // }
-
-            // if ($detailsCount == 2) {
-            //     break;
-            // }
         }
 
         return $detailsCount;
