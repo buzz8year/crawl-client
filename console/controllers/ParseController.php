@@ -74,8 +74,8 @@ class ParseController extends \yii\console\Controller
      */
     public function actionSync()
     {
-        Yii::info('SYNC Goods: ' . PHP_EOL, 'parse-console');
-        $this->stdout('SYNC Goods: ' . PHP_EOL);
+        Yii::info('SYNC Goods: ' . ($this->src ? $this->src : '') . PHP_EOL, 'parse-console');
+        $this->stdout('SYNC Goods: ' . ($this->src ? $this->src : '') . PHP_EOL);
 
         if ($syncData = OcSettler::saveProducts($this->src ?? null)) {
             Yii::info(
