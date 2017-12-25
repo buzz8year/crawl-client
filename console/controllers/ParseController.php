@@ -122,11 +122,11 @@ class ParseController extends \yii\console\Controller
             $model  = $super->createModel($this->src);
             $parser = new $model->class();
 
-            $presentProducts = Source::findOne($model->id)->productUrls;
+            $presentProducts = Source::findOne($model->id)->emptyProducts;
             // PRINT: Stdout console
             $this->stdout(
                 PHP_EOL . PHP_EOL .
-                'UPDATING DETAILS of all (' . count($presentProducts) . ') ' . $model->title . ' Products' .
+                'UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' .
                 PHP_EOL
             );
             $parser->parseDetails($presentProducts);
@@ -134,7 +134,7 @@ class ParseController extends \yii\console\Controller
             // PRINT: Stdout console
             $this->stdout('Done' . PHP_EOL);
             // LOG: console/runtime/logs/parse.log
-            Yii::info('UPDATING DETAILS of all (' . count($presentProducts) . ') ' . $model->title . ' Products' . PHP_EOL . 'Done', 'parse-console');
+            Yii::info('UPDATING DETAILS of all empty (' . count($presentProducts) . ') ' . $model->title . ' Products' . PHP_EOL . 'Done', 'parse-console');
         }
 
         else {

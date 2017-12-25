@@ -269,7 +269,17 @@ class Source extends \yii\db\ActiveRecord
         // return ArrayHelper::map($products, 'id', 'source_url');
     }
 
-
+    public function getEmptyProducts()
+    {
+        $products = Product::find()->where(['source_id' => $this->id])->all();
+        $productUrls = [];
+        foreach ($products as $product) {
+            if (!$product->productImages && !$product->descriptions && !$product->productAttributes) {
+                $productUrls[$product->id] = $product->source_url;
+            }
+        }
+        return $productUrls;
+    }
 
     public function getKeywordSources()
     {
