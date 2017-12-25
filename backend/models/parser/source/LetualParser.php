@@ -215,8 +215,7 @@ class LetualParser extends Parser implements ParserSourceInterface
     {
         $data = [];
         foreach ($nodes as $node) {
-            $id = $node->getAttribute('data-id');
-            // $link = $node->getElementsByTagName('a')[0]->getAttribute('href');
+            $link = $node->getElementsByTagName('a')[0]->getAttribute('href');
             // $price = preg_replace("/[^0-9]/", '', $node->parentNode->parentNode->getElementsByTagName('b')[0]->textContent);
             foreach ($node->getElementsByTagName('p') as $p) {
                 if ($p->getAttribute('class') && $p->getAttribute('class') == 'wrItemMinPrice') {
@@ -228,12 +227,13 @@ class LetualParser extends Parser implements ParserSourceInterface
 
             // if ($href) {
             // if ($link && $price) {
-            if ($id && $price) {
+            if ($link && $price) {
+                $exp = explode(';', $link);
                 $data[] = [
                     // 'id'         => $id,
                     'name'       => $name,
                     'price'      => $price,
-                    'href'       => self::$model->domain . '/' . $id,
+                    'href'       => self::$model->domain . '/' . $exp[0],
                     // 'href'       => self::$model->domain . $href,
                     // 'attributes' => [],
                 ];
