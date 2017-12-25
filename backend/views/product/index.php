@@ -158,7 +158,20 @@ $this->params['breadcrumbs'][] = $this->title;
             //'track_price',
             'sync_status',
             'date_created',
-
+            [
+                'format'    => 'raw',
+                'content'     => function ($model) {
+                    return Html::a(
+                        '<i class="glyphicon glyphicon-refresh"></i>', 
+                        ['product/update-details', 'id' => $model->id], 
+                        [
+                            'style' => 'text-align: center; display: block',
+                            'title' => 'Обновить детализацию товара',
+                            'onclick' => 'if (!confirm(\'Начать парсинг страницы товара?\')) { return false; }'
+                        ]
+                    );
+                },
+            ],
             ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>

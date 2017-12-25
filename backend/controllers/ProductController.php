@@ -8,6 +8,7 @@ use backend\models\Product;
 use backend\models\ProductAttribute;
 use backend\models\search\ProductSearch;
 use backend\models\opencart\OcSettler;
+use backend\models\parser\Parser;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -109,6 +110,30 @@ class ProductController extends Controller
             'model' => $model,
         ]);
     }
+
+
+    /**
+     * Updates an existing Product model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionUpdateDetails($id)
+    {
+        $model = $this->findModel($id);
+
+        $super = new Parser();
+        $modelParser = $super->createModel($model->source_id);
+        $parser = new $modelParser->class();
+
+        $parser->parseDetails([$model->id => $model->source_url]);
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
+    }
+
+
 
     /**
      * Deletes an existing Product model.
