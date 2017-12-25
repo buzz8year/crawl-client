@@ -145,7 +145,7 @@ class OcSettler
     /**
      * @return
      */
-    public static function deleteMisfits()
+    public static function deleteMisfits(int $sourceID = null)
     {
         $db = self::getDb();
 
@@ -161,10 +161,13 @@ class OcSettler
             'misfits' => 0,
         ];
 
-        foreach ($productsOc as $productOc) {
+        foreach ($productsOc as $key => $productOc) {
             if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
                 $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
                 $data['misfits']++;
+            }
+            if ($key % 100 == 0 || $product == end($products)) {
+                print_r($key . ' -> ');
             }
         }
 
