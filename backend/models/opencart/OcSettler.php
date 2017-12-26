@@ -215,7 +215,8 @@ class OcSettler
                         WHERE source_url = ' . $db->quoteValue($product->source_url)
                     )->queryOne();
 
-                    if (!$productExist && $product->price) {
+                    // if (!$productExist && $product->price) {
+                    if (!$productExist && $product->price && ($product->productImages || $product->descriptions || $product->productAttributes)) {
                         $ocProductId = self::saveProduct($product);
                         $data['synced']++;
                     }
@@ -226,13 +227,15 @@ class OcSettler
                         $data['updated']++;
                     }
 
-                    self::saveProductStore($ocProductId);
-                    self::saveProductCategory($product, $ocProductId);
-                    self::saveDescription($product, $ocProductId);
-                    self::saveAttributes($product, $ocProductId);
+                    if (isset($ocProductId)) {
+                        self::saveProductStore($ocProductId);
+                        self::saveProductCategory($product, $ocProductId);
+                        self::saveDescription($product, $ocProductId);
+                        self::saveAttributes($product, $ocProductId);
 
-                    $product->sync_status = 1;
-                    $product->save();
+                        $product->sync_status = 1;
+                        $product->save();
+                    }
 
                     $data['processed']++;
 
