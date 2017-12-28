@@ -219,15 +219,14 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
 
-                    // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products:' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products:' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
                     // foreach ($products->batch(1000) as $productID) {
-                    foreach (($products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->each(100)) as $product) {
+                    foreach (($products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->each()) as $product) {
                     // foreach ($products as $product) {
-                        print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
                         // $product = Product::findOne($productID);
                         $productExist = $db->createCommand('
                             SELECT * 
