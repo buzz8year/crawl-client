@@ -182,45 +182,11 @@ class OcSettler
     }
 
 
-
-    public static function myErrorHandler($code, $message, $file, $line) {
-        print_r(PHP_EOL . 'ERROR' . PHP_EOL);
-
-        if (isset($code)) {
-            print_r('Code ' . $code . '. ');
-        }
-        if (isset($message)) {
-            print_r($message . PHP_EOL);
-        }
-        if (isset($file)) {
-            print_r($file . ' ');
-        }
-        if (isset($line)) {
-            print_r($line . PHP_EOL);
-        }
-
-        print_r('END' . PHP_EOL . PHP_EOL);
-    }
-
-    public static function fatalErrorShutdownHandler()
-    {
-        $error = error_get_last();
-        if ($error['type'] === E_ERROR) {
-            // fatal error
-            self::myErrorHandler(E_ERROR, $error['message'], $error['file'], $error['line']);
-        }
-    }
-
-
     /**
      * @return array, processed data info
      */
     public static function saveProducts(int $sourceId = null)
     {
-        ini_set('display_errors', false);
-        set_error_handler(['self', 'myErrorHandler']);
-        register_shutdown_function(['self', 'fatalErrorShutdownHandler']);
-
         $db = self::getDb();
 
         $sources = ParserProvisioner::activeSources();
