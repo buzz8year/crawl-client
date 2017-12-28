@@ -204,10 +204,10 @@ class OcSettler
 
     public static function fatalErrorShutdownHandler()
     {
-        $last_error = error_get_last();
-        if ($last_error['type'] === E_ERROR) {
-            // fatal error
-            self::myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
+        $error = error_get_last();
+        // if ($error['type'] === E_ERROR) {
+        if (ErrorException::isFatalError($error)) {
+            self::myErrorHandler(E_ERROR, $error['message'], $error['file'], $error['line']);
         }
     }
 
