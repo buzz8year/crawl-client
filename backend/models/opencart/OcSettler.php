@@ -215,7 +215,7 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
 
-                    print_r('SYNC ' . Source::findOne()->title . ' products (' . count($products) . '):' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' products (' . count($products) . '):' . PHP_EOL);
 
                     foreach ($products as $product) {
                         $productExist = $db->createCommand('
