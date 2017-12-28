@@ -185,20 +185,20 @@ class OcSettler
 
     static function myErrorHandler($code, $message, $file, $line) {
         print_r(PHP_EOL . 'ERROR' . PHP_EOL);
-        
+
         if (isset($code)) {
-            print_r($code . PHP_EOL);
+            print_r($code . ' ');
         }
         if (isset($message)) {
             print_r($message . PHP_EOL);
         }
         if (isset($file)) {
-            print_r($file . PHP_EOL);
+            print_r($file . ' ');
         }
         if (isset($line)) {
             print_r($line . PHP_EOL);
         }
-        
+
         print_r('END' . PHP_EOL . PHP_EOL);
     }
 
@@ -219,7 +219,7 @@ class OcSettler
     {
         set_error_handler(['self', 'myErrorHandler']);
 
-        register_shutdown_function('fatalErrorShutdownHandler');
+        register_shutdown_function(['self', 'fatalErrorShutdownHandler']);
 
         $db = self::getDb();
 
