@@ -206,7 +206,7 @@ class OcSettler
     {
         $error = error_get_last();
         // if ($error['type'] === E_ERROR) {
-        if (in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING, self::E_HHVM_FATAL_ERROR]) {
+        if (in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING, self::E_HHVM_FATAL_ERROR])) {
             self::myErrorHandler(E_ERROR, $error['message'], $error['file'], $error['line']);
         }
     }
