@@ -5,6 +5,7 @@ namespace backend\models\opencart;
 use backend\models\parser\ParserProvisioner;
 use backend\models\CategorySource;
 use backend\models\Product;
+use backend\models\Source;
 use Yii;
 
 
