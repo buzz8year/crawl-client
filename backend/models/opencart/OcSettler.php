@@ -213,7 +213,7 @@ class OcSettler
                         //     WHERE sync_status = 0
                         //     AND source_id = ' . $srcID
                         // );
-                        $products = (new \yii\db\Query())->select('id')->from('product')->where(['sync_status' => 0, 'source_id' => $srcID]);
+                        // $products = (new \yii\db\Query())->select('id')->from('product')->where(['sync_status' => 0, 'source_id' => $srcID]);
                     // } else {
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
@@ -223,9 +223,10 @@ class OcSettler
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
-                    foreach ($products->batch(1000) as $productID) {
+                    // foreach ($products->batch(1000) as $productID) {
+                    foreach (Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->each(100) as $product) {
                     // foreach ($products as $product) {
-                        $product = Product::findOne($productID);
+                        // $product = Product::findOne($productID);
                         $productExist = $db->createCommand('
                             SELECT * 
                             FROM oc_product_description 
