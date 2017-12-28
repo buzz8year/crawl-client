@@ -187,8 +187,9 @@ class OcSettler
      */
     public static function saveProducts(int $sourceId = null)
     {
-        ini_set('memory_limit', '-1');
         $db = self::getDb();
+
+        // Yii::$app->db->pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
 
         $sources = ParserProvisioner::activeSources();
 
@@ -210,7 +211,7 @@ class OcSettler
                             FROM product 
                             WHERE sync_status = 0
                             AND source_id = ' . $srcID
-                        )->queryAll();
+                        );
                     // } else {
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
@@ -218,7 +219,7 @@ class OcSettler
 
                     print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
-                    foreach ($products as $product) {
+                    foreach ($products->batch(1000) as $product) {
                         $productExist = $db->createCommand('
                             SELECT * 
                             FROM oc_product_description 
@@ -253,6 +254,9 @@ class OcSettler
                             print_r($data['processed'] . ' -> ');
                         }
                     }
+
+                    $usage = memory_get_peak_usage(true);
+                    print_r(round($usage / 1024 / 1024, 2) . ' МиБ');
                 }
             }
 
@@ -261,6 +265,8 @@ class OcSettler
             }
 
         }
+
+
 
         // print_r($data);
         return $data;
