@@ -203,10 +203,10 @@ class OcSettler
             try {
                 if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
                     // if ($srcID) {
-                        self::saveCategories($srcID);
+                        // self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->limit(2000)->all();
+                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->limit(1000)->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->batch();
                         // $products = Yii::$app->db->createCommand('
                         //     SELECT * 
