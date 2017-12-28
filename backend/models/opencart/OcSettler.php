@@ -219,7 +219,8 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
 
-                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
+                    // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
                     foreach ($products as $product) {
