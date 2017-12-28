@@ -218,10 +218,10 @@ class OcSettler
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
                     // }
-                    $source = Source::findOne($srcID);
-                    print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
+                    // $source = Source::findOne($srcID);
+                    // print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
-                    // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
                     // foreach ($products->batch(1000) as $productID) {
