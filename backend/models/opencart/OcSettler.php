@@ -182,11 +182,30 @@ class OcSettler
     }
 
 
+
+    static function myErrorHandler($code, $message, $file, $line) {
+      print_r('ERROR');
+    }
+
+    static function fatalErrorShutdownHandler()
+    {
+      $last_error = error_get_last();
+      if ($last_error['type'] === E_ERROR) {
+        // fatal error
+        myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
+      }
+    }
+
+
     /**
      * @return array, processed data info
      */
     public static function saveProducts(int $sourceId = null)
     {
+        set_error_handler(['self', 'myErrorHandler']);
+
+        register_shutdown_function('fatalErrorShutdownHandler');
+
         $db = self::getDb();
 
         $sources = ParserProvisioner::activeSources();
@@ -203,13 +222,13 @@ class OcSettler
                     // if ($srcID) {
                         self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
-                        // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        $products = Yii::$app->db->createCommand('
-                            SELECT * 
-                            FROM product 
-                            WHERE sync_status = 0
-                            AND source_id = ' . $srcID
-                        )->queryAll();
+                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
+                        // $products = Yii::$app->db->createCommand('
+                        //     SELECT * 
+                        //     FROM product 
+                        //     WHERE sync_status = 0
+                        //     AND source_id = ' . $srcID
+                        // )->queryAll();
                     // } else {
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
