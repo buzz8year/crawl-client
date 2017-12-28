@@ -277,11 +277,29 @@ class ParserSettler implements ParserSettlingInterface
                         );
                     }
 
-                    $url = (isset($product['api_href']) && $product['api_href']) ? $product['api_href'] : $product['href'];
-                    $dataDetails[$newProduct->id] = $url;
+                    else {
+                        if ((isset($product['descriptions']) && $product['descriptions'])
+                            || (isset($product['attributes']) && $product['attributes'])
+                            || (isset($product['images']) && $product['images'])) {
+
+                                if (isset($product['descriptions']) && $product['descriptions']) {
+                                    $this->saveDescriptions($product['descriptions'], $newProduct->id);
+                                }
+                                if (isset($product['attributes']) && $product['attributes']) {
+                                    $this->saveAttributes($product['attributes'], $newProduct->id);
+                                }
+                                if (isset($product['images']) && $product['images']) {
+                                    $this->saveImages($product['images'], $newProduct->id);
+                                }
+                        }
+                        else {
+                            $url = (isset($product['api_href']) && $product['api_href']) ? $product['api_href'] : $product['href'];
+                            $dataDetails[$newProduct->id] = $url;
+                        }
+                    }
 
                 } else {
-
+                    
                     if ($productExist->track_price) {
                         if ($productExist->price_new && $productExist->price_new != $product['price']) {
                             $productExist->price = $productExist->price_new;
@@ -290,6 +308,20 @@ class ParserSettler implements ParserSettlingInterface
                         $productExist->price_update = date('Y-m-d H:i:s', time());
                         $productExist->save();
                     }
+                    // if ((isset($product['descriptions']) && $product['descriptions'])
+                    //     || (isset($product['attributes']) && $product['attributes'])
+                    //     || (isset($product['images']) && $product['images'])) {
+                        
+                    //         if (isset($product['descriptions']) && $product['descriptions']) {
+                    //             $this->saveDescriptions($product['descriptions'], $productExist->id);
+                    //         }
+                    //         if (isset($product['attributes']) && $product['attributes']) {
+                    //             $this->saveAttributes($product['attributes'], $productExist->id);
+                    //         }
+                    //         if (isset($product['images']) && $product['images']) {
+                    //             $this->saveImages($product['images'], $productExist->id);
+                    //         }
+                    // }
                 }
             }
         }

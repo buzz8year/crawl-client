@@ -171,28 +171,30 @@ class Source extends \yii\db\ActiveRecord
     {
         $arrayProxies = [];
         
-        // foreach ($this->proxySources as $proxySource) {
-        //     $proxy = Proxy::findOne($proxySource['proxy_id']);
+        foreach ($this->proxySources as $proxySource) {
+            $proxy = Proxy::findOne($proxySource['proxy_id']);
 
-        //     $address = $proxy->ip . ($proxy->port ? ':' . $proxy->port : '');
-        //     $password = $proxy->login ? $proxy->login . ':' . $proxy->password : '';
+            $address = $proxy->ip . ($proxy->port ? (':' . $proxy->port) : '');
+            $password = $proxy->login ? ($proxy->login . ':' . $proxy->password) : '';
 
-        //     if ($proxySource->status) {
-        //         $arrayProxies['ipv' . $proxy->version][] = [
-        //             'address'   => $address,
-        //             'password'  => $password,
-        //         ];
-        //     }
-        // }
+            if ($proxySource->status) {
+                $arrayProxies['ipv' . $proxy->version][] = [
+                    'address'   => $address,
+                    'password'  => $password,
+                ];
+            }
+        }
 
         foreach (Proxy::find()->all() as $proxy) {
-            $address = $proxy->ip . ($proxy->port ? ':' . $proxy->port : '');
-            $password = $proxy->login ? $proxy->login . ':' . $proxy->password : '';
+            $address = $proxy->ip . ($proxy->port ? (':' . $proxy->port) : '');
+            $password = $proxy->login ? ($proxy->login . ':' . $proxy->password) : '';
 
-            $arrayProxies['ipv' . $proxy->version][] = [
-                'address'   => $address,
-                'password'  => $password,
-            ];
+            if (!in_array($address, $arrayProxies['ipv' . $proxy->version])) {
+                $arrayProxies['ipv' . $proxy->version][] = [
+                    'address'   => $address,
+                    'password'  => $password,
+                ];
+            }
         }
 
         return $arrayProxies;

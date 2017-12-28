@@ -15,8 +15,10 @@ class OzonParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = 'group=';
     const QUERY_KEYWORD  = 'text=';
 
-    const XPATH_WARNING = '//*[contains(@class, \'bNotice\')]'; // At Catalog/Search Page
-    const XPATH_CATALOG = '//*[contains(@itemprop, \'itemListElement\')]'; // At Catalog/Search Page
+    // const XPATH_WARNING = '//*[contains(@class, \'bNotice\')]'; // At Catalog/Search Page
+    const XPATH_WARNING = ''; // At Catalog/Search Page
+    const XPATH_CATALOG = '//yml_catalog'; // At Catalog/Search Page
+    // const XPATH_CATALOG = '//*[contains(@itemprop, \'itemListElement\')]'; // At Catalog/Search Page
 
     const XPATH_SUPER = '//*[contains(@class, \'bBaseInfoColumn\')]'; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = '//*[contains(@class, \'eItemProperties_line\')]'; // At Product Page
@@ -28,12 +30,108 @@ class OzonParser extends Parser implements ParserSourceInterface
     const LEVEL_TWO_CATEGORY_CLASS   = 'eLeftMainMenu_Title'; // At Level One Category Page leftmenu
     const LEVEL_THREE_CATEGORY_CLASS = 'eLeftMainMenu_Link'; // At Level One Category Page leftmenu
 
-    const CURL_FOLLOW = 0; // CURLOPT_FOLLOWLOCATION
+    const CURL_FOLLOW = 1; // CURLOPT_FOLLOWLOCATION
 
     const MAX_QUANTITY = 990; // Real range is from 990 to ~1140 (+/-)
 
+    const DEFINE_CLIENT = 'file';
+
 
     public function parseCategories()
+    {
+        $data = [];
+
+        if ($response = $this->sessionClient(self::$model->domain . '/context/partner_xml/')) {
+            if (($nodes = $this->getNodes($response, '//a[@download]')) && $nodes->length) {
+
+                foreach ($nodes as $key => $node) {
+                    $content = file_get_contents('http:' . $node->getAttribute('download'));
+                    $lines = explode("\n", $content);
+
+                    $dataL1 = [];
+                    $dataL2 = [];
+                    $dataL3 = [];
+                    $dataL4 = [];
+
+                    foreach ($lines as $keyLine => $line) {
+                        $expLine = explode('(', rtrim(trim($line), ')'));
+                        $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0]))));
+
+                        if ($keyLine == 0) {
+                            $data[$key] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 0,
+                            ];
+                        }
+
+                        $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
+
+                        if ($nest == 1) {
+                            $data[$key]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 1,
+                            ];
+                            $dataL1[] = $keyLine;
+                        }
+
+                        if ($nest == 2) {
+                            $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 2,
+                            ];
+                            $dataL2[] = $keyLine;
+                        }
+
+                        if ($nest == 3) {
+                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 3,
+                            ];
+                            $dataL3[] = $keyLine;
+                        }
+
+                        if ($nest == 4) {
+                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 4,
+                            ];
+                            $dataL4[] = $keyLine;
+                        }
+                    }
+
+                    // if ($key == 0) {
+                    //     break;
+                    // }
+                }
+            }
+        }
+
+        return $data;
+    }
+
+
+    // public function parseCategories()
+    public function parseCategoriesMute()
     {
         $response      = $this->curlSession(self::$model->domain);
         print_r($response);
@@ -118,9 +216,9 @@ class OzonParser extends Parser implements ParserSourceInterface
 
             $data[] = $levelOneData;
 
-            if ($tempKey == 2) {
-                break;
-            }
+            // if ($tempKey == 2) {
+            //     break;
+            // }
             // Do not forget to REMOVE
         }
 
@@ -133,11 +231,11 @@ class OzonParser extends Parser implements ParserSourceInterface
 
     public function getWarningData(\DOMNodeList $nodes)
     {
-        foreach ($nodes as $node) {
-            $data[] = $node->textContent;
-        }
+        // foreach ($nodes as $node) {
+        //     $data[] = $node->textContent;
+        // }
 
-        return $data;
+        // return $data;
     }
 
     /**
@@ -148,22 +246,57 @@ class OzonParser extends Parser implements ParserSourceInterface
     public function getProducts($nodes)
     {
         $data = [];
+        $images = [];
+        $attributes = [];
+        $descriptions = [];
 
-        foreach ($nodes as $node) {
-            $id    = $node->getAttribute('data-itemid');
-            $price = $node->getAttribute('data-price');
-            $name  = $node->getAttribute('data-name');
-            $href  = $node->getAttribute('data-href');
+        foreach ($nodes->shop->offers->offer as $node) {
+            $name = (string)$node->name;
 
-            if ($href) {
-                $data[] = [
-                    'id'         => $id,
-                    'name'       => $name,
-                    'price'      => $price,
-                    'href'       => self::$model->domain . $href,
-                    'attributes' => [],
-                ];
+            if (isset($node->vendor)) {
+                $name .= '. ' . (string)$node->vendor;
             }
+            if (isset($node->author)) {
+                $name .= '. ' . (string)$node->author;
+            }
+
+            if (isset($node->picture)) {
+                foreach ($node->picture as $picture) {
+                    $images[] = [
+                        'fullsize' => (string)$picture,
+                        'thumb' => '',
+                    ];
+                }
+            }
+
+            if (isset($node->param)) {
+                foreach ($node->param as $param) {
+                    $attributes[] = [
+                        'title' => (string)$param['name'],
+                        'value' => (string)$param . (string)$param['unit'],
+                    ];
+                }
+            }
+
+            if (isset($node->description)) {
+                foreach ($node->description as $desc) {
+                    $descriptions[] = [
+                        'title' => '',
+                        'text' => (string)$desc,
+                    ];
+                }
+            }
+
+            // if ($href) {
+                $data[] = [
+                    'name'       => $name,
+                    'price'      => (string)$node->price,
+                    'href'       => explode('/?', (string)$node->url)[0],
+                    'descriptions' => $descriptions,
+                    'attributes' => $attributes,
+                    'images' => $images,
+                ];
+            // }
         }
 
         return $data;
@@ -282,25 +415,26 @@ class OzonParser extends Parser implements ParserSourceInterface
 
         $url = '';
 
-        if ($categorySourceId != null && $keyword != '') {
-            if ($category->source_category_alias) {
-                $url = $domain . self::ACTION_SEARCH . '&' . self::QUERY_CATEGORY . $category->source_category_alias . '&' . self::QUERY_KEYWORD . $keyword;
-            } else {
-                $url = $this->processUrl($category->source_url) . '?' . self::QUERY_KEYWORD . $keyword;
-            }
-        }
+        // if ($categorySourceId != null && $keyword != '') {
+        //     if ($category->source_category_alias) {
+        //         $url = $domain . self::ACTION_SEARCH . '&' . self::QUERY_CATEGORY . $category->source_category_alias . '&' . self::QUERY_KEYWORD . $keyword;
+        //     } else {
+        //         $url = $this->processUrl($category->source_url) . '?' . self::QUERY_KEYWORD . $keyword;
+        //     }
+        // }
 
         if ($categorySourceId != null && $keyword == '') {
             // if ($category->source_category_alias) {
             //     $url = $domain . self::ACTION_SEARCH . '&' . self::QUERY_CATEGORY . $category->source_category_alias;
             // } else {
-                $url = $this->processUrl($category->source_url);
+                // $url = $this->processUrl($category->source_url);
+                $url = $category->source_url;
             // }
         }
 
-        if ($categorySourceId == null && $keyword != '') {
-            $url = $domain . self::ACTION_SEARCH . '&' . self::QUERY_KEYWORD . $keyword;
-        }
+        // if ($categorySourceId == null && $keyword != '') {
+        //     $url = $domain . self::ACTION_SEARCH . '&' . self::QUERY_KEYWORD . $keyword;
+        // }
 
         return $url;
     }

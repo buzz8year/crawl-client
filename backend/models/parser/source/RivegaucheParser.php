@@ -17,7 +17,8 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
 
     const QUERY_PRODUCT_API = '/rest/v1/newRG/products?query=%3A%3Acode%3A';
 
-    const XPATH_WARNING = '//html'; // At Catalog/Search Page
+    // const XPATH_WARNING = '//html'; // At Catalog/Search Page
+    const XPATH_WARNING = ''; // At Catalog/Search Page
     const XPATH_CATALOG = '//html'; // At Catalog/Search Page
     
     const XPATH_BREADCRUMBS = '//*[contains(@class, \'breadCrumbsProduct\')]//a'; // At Catalog/Search Page
@@ -126,14 +127,14 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
      */
     public function getWarningData(\DOMNodeList $nodes)
     {
-        $data = [];
-        foreach ($nodes as $node) {
-            $json = json_decode ( $node->nodeValue , true );
-            if ( count ( $json['products'] ) == 0 )
-                $data[] = 'Ничего не найдено';
-        }
+        // $data = [];
+        // foreach ($nodes as $node) {
+        //     $json = json_decode ( $node->nodeValue , true );
+        //     if ( count ( $json['products'] ) == 0 )
+        //         $data[] = 'Ничего не найдено';
+        // }
 
-        return $data;
+        // return $data;
     }
 
 
@@ -163,7 +164,6 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
     {
         $data = [];
         // $category = CategorySource::find()->where(['source_id' => $_GET['id'],'category_id'=>$_GET['cat']])->one();
-
         foreach ($nodes as $node) {
             $json = json_decode ( $node->nodeValue , true );
             foreach ($json['products'] as $product) {
@@ -201,6 +201,7 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
                 }
             }
         }
+
         return $data;
     }
 

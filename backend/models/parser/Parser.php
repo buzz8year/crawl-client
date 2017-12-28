@@ -85,6 +85,7 @@ class Parser implements ParserInterface
         $random  = self::$agents ? rand(0, count(self::$agents) - 1) : null;
         $agent   = self::$agents[$random] ?? [];
         $options = [
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => self::$model->class::CURL_FOLLOW,
             CURLOPT_PROXY          => self::$proxies[0]['address'] ?? null,
@@ -157,6 +158,9 @@ class Parser implements ParserInterface
     public function sessionClient(string $url)
     {
         switch (self::$client['alias']) {
+            case 'file':
+                return $this->fileSession($url);
+
             case 'curl':
                 return $this->curlSession($url);
 
@@ -175,6 +179,40 @@ class Parser implements ParserInterface
     }
 
 
+
+
+
+    /**
+     * fileSession() function utilizes file_get_contents() function.
+     *
+     * @param string $url
+     * @return array
+     */
+    public function fileSession(string $url)
+    {
+        if ($contents = file_get_contents($url)) {
+            $this->processResponse(0, $url, 'file');
+            return $contents;
+        }
+    }
+
+
+    /**
+     * zipSession()
+     *
+     * @param string $url
+     * @return array
+     */
+    public function zipSession(string $url)
+    {
+        $zip = new \ZipArchive(); 
+        file_put_contents('tmp.zip', file_get_contents($url));
+        if ($zip->open('tmp.zip') === true) {
+            $data = $zip->getFromIndex(0);
+            $zip->close();
+            return $data;
+        }
+    }
 
 
     /**
@@ -205,17 +243,18 @@ class Parser implements ParserInterface
             $this->processResponse(1, $url);
             return $this->curlSession($url);
         }
-        // if ($info['http_code'] == 403) {
-            // if (self::$agents) {
-            if (!$response && self::$agents) {
+        if ($info['http_code'] == 403) {
+            if (self::$agents) {
+            // if (!$response && self::$agents) {
                 $this->processResponse(2, $url);
                 return $this->curlSession($url);
             } else {
                 // throw new \Exception('Source returned error 403 (Access denied) - скорее всего не хватает нужного user-agent заголовка.');
             }
-        // }
+        }
 
         if ($response) {
+            // print_r($info);
             // $captcha = $this->getNodes($response, '//*[contains(@*, \'captcha\')]');
             // if ($captcha && $captcha->length) {
             //     $this->processResponse(1, $url);
@@ -257,7 +296,7 @@ class Parser implements ParserInterface
 
         $phantom->send($request, $response);
 
-        $this->processResponse(0, $url);
+        $this->processResponse(0, $url, 'phantom');
         
         if (!$response->getContent() && self::$proxies) {
             // $this->processResponse(1, $url);
@@ -277,12 +316,14 @@ class Parser implements ParserInterface
      * @param string $type
      * @return void
      */
-    public function processResponse(int $status, string $url)
+    public function processResponse(int $status, string $url, string $client = '')
     {
         $proxy = self::$proxies[0] ?? [];
         $agent = self::$agents[0] ?? [];
 
-        ParserSettler::logSession($status, $url, self::$model->id, $proxy, $agent, $this->getClientAlias());
+        $defClient = $client ? $client : $this->getClientAlias();
+
+        ParserSettler::logSession($status, $url, self::$model->id, $proxy, $agent, $defClient);
 
         switch ($status) {
             case 0:
@@ -335,7 +376,12 @@ class Parser implements ParserInterface
                 ? $page
                 : ($url . $page);
 
-            $response = $this->sessionClient($pageUrl);
+            
+            if ($this->getClientAlias() == 'file') {
+                $response = $this->zipSession($pageUrl);
+            } else {
+                $response = $this->sessionClient($pageUrl);
+            }
             // print_r($response);
 
             // When Search page & Catalog page templates are different, following becomes usefull
@@ -359,13 +405,23 @@ class Parser implements ParserInterface
             }
 
             if ($response) {
-                $nodes = $this->getNodes($response, $xpath, $xpathSale);
-                if (isset($nodes->length) && $nodes->length) {
+
+                if ($this->getClientAlias() == 'file') {
+                    $nodes = $this->getPlainXml($response);
+                    // print_r($nodes);
                     return $this->getProducts($nodes);
+
+                } else {
+                    $nodes = $this->getNodes($response, $xpath, $xpathSale);
+
+                    if (isset($nodes->length) && $nodes->length) {
+                        return $this->getProducts($nodes);
+                    }
+                    elseif ($nodes === true) {
+                        return [[]];
+                    }
                 }
-                elseif ($nodes === true) {
-                    return [[]];
-                }
+
             }
             
             // else {
@@ -507,6 +563,15 @@ class Parser implements ParserInterface
     }
 
 
+    /**
+     * @return 
+     */
+    public function getPlainXml(string $response)
+    {
+        $xml = new \SimpleXMLElement($response);
+        return $xml;
+    }
+
 
 
 
@@ -592,7 +657,7 @@ class Parser implements ParserInterface
                 }
 
                 // LAST PAGE
-                if (isset($lastPage) && $page === $lastPage) {
+                if ((isset($lastPage) && $page === $lastPage) || $this->getClientAlias() == 'file') {
                 // if ($page == 1) {
                     break;
                 }
@@ -654,7 +719,7 @@ class Parser implements ParserInterface
                 $detailsCount++;
 
                 // if ($detailsCount % 100 == 0 || $url == end($details)) {
-                    print_r($detailsCount . ' > ');
+                    // print_r($detailsCount . ' > ');
                 // }
 
                 // if ($detailsCount == 2) {
