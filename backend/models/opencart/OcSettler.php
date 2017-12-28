@@ -197,53 +197,60 @@ class OcSettler
         ];
 
         foreach ($sources as $srcID => $source) {
-            if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
-                // if ($srcID) {
-                    self::saveCategories($srcID);
-                    $products = Product::find()->where(['source_id' => $srcID])->all();
-                    // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                // } else {
-                //     self::saveCategories();
-                //     $products = Product::find()->all();
-                //     // $products = Product::find()->where(['sync_status' => 0])->all();
-                // }
+            try {
+                if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
+                    // if ($srcID) {
+                        self::saveCategories($srcID);
+                        $products = Product::find()->where(['source_id' => $srcID])->all();
+                        // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
+                    // } else {
+                    //     self::saveCategories();
+                    //     $products = Product::find()->all();
+                    //     // $products = Product::find()->where(['sync_status' => 0])->all();
+                    // }
 
-                foreach ($products as $product) {
-                    $productExist = $db->createCommand('
-                        SELECT * 
-                        FROM oc_product_description 
-                        WHERE source_url = ' . $db->quoteValue($product->source_url)
-                    )->queryOne();
+                    foreach ($products as $product) {
+                        $productExist = $db->createCommand('
+                            SELECT * 
+                            FROM oc_product_description 
+                            WHERE source_url = ' . $db->quoteValue($product->source_url)
+                        )->queryOne();
 
-                    // if (!$productExist && $product->price) {
-                    if (!$productExist && $product->price && ($product->productImages || $product->descriptions || $product->productAttributes)) {
-                        $ocProductId = self::saveProduct($product);
-                        $data['synced']++;
-                    }
+                        // if (!$productExist && $product->price) {
+                        if (!$productExist && $product->price && ($product->productImages || $product->descriptions || $product->productAttributes)) {
+                            $ocProductId = self::saveProduct($product);
+                            $data['synced']++;
+                        }
 
-                    elseif ($productExist) {
-                        $ocProductId = $productExist['product_id'];
-                        self::updateProduct($product, $ocProductId);
-                        $data['updated']++;
-                    }
+                        elseif ($productExist) {
+                            $ocProductId = $productExist['product_id'];
+                            self::updateProduct($product, $ocProductId);
+                            $data['updated']++;
+                        }
 
-                    if (isset($ocProductId)) {
-                        self::saveProductStore($ocProductId);
-                        self::saveProductCategory($product, $ocProductId);
-                        self::saveDescription($product, $ocProductId);
-                        self::saveAttributes($product, $ocProductId);
+                        if (isset($ocProductId)) {
+                            self::saveProductStore($ocProductId);
+                            self::saveProductCategory($product, $ocProductId);
+                            self::saveDescription($product, $ocProductId);
+                            self::saveAttributes($product, $ocProductId);
 
-                        $product->sync_status = 1;
-                        $product->save();
-                    }
+                            $product->sync_status = 1;
+                            $product->save();
+                        }
 
-                    $data['processed']++;
+                        $data['processed']++;
 
-                    if ($data['processed'] % 100 == 0 || $product == end($products)) {
-                        print_r($data['processed'] . ' -> ');
+                        if ($data['processed'] % 100 == 0 || $product == end($products)) {
+                            print_r($data['processed'] . ' -> ');
+                        }
                     }
                 }
             }
+            
+            catch (\Exception $e) {
+                // echo $e->getMessage();
+            }
+
         }
 
         // print_r($data);
