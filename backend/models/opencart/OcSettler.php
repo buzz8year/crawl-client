@@ -183,11 +183,11 @@ class OcSettler
 
 
 
-    static function myErrorHandler($code, $message, $file, $line) {
+    public static function myErrorHandler($code, $message, $file, $line) {
         print_r(PHP_EOL . 'ERROR' . PHP_EOL);
 
         if (isset($code)) {
-            print_r($code . ' ');
+            print_r('Code ' . $code . '. ');
         }
         if (isset($message)) {
             print_r($message . PHP_EOL);
@@ -202,7 +202,7 @@ class OcSettler
         print_r('END' . PHP_EOL . PHP_EOL);
     }
 
-    static function fatalErrorShutdownHandler()
+    public static function fatalErrorShutdownHandler()
     {
         $last_error = error_get_last();
         if ($last_error['type'] === E_ERROR) {
@@ -218,7 +218,6 @@ class OcSettler
     public static function saveProducts(int $sourceId = null)
     {
         set_error_handler(['self', 'myErrorHandler']);
-
         register_shutdown_function(['self', 'fatalErrorShutdownHandler']);
 
         $db = self::getDb();
