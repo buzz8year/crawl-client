@@ -207,7 +207,7 @@ class OcSettler
         $last_error = error_get_last();
         if ($last_error['type'] === E_ERROR) {
             // fatal error
-            myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
+            self::myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
         }
     }
 
@@ -249,7 +249,7 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
 
-                    print_r('SYNC ' . Source::findOne($srcID)->title . ' products (' . count($products) . '):' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
                     foreach ($products as $product) {
                         $productExist = $db->createCommand('
