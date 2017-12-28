@@ -222,13 +222,13 @@ class OcSettler
                     // if ($srcID) {
                         self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
-                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        // $products = Yii::$app->db->createCommand('
-                        //     SELECT * 
-                        //     FROM product 
-                        //     WHERE sync_status = 0
-                        //     AND source_id = ' . $srcID
-                        // )->queryAll();
+                        // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
+                        $products = Yii::$app->db->createCommand('
+                            SELECT * 
+                            FROM product 
+                            WHERE sync_status = 0
+                            AND source_id = ' . $srcID
+                        )->queryAll();
                     // } else {
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
