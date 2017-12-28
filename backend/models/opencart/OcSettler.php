@@ -206,7 +206,7 @@ class OcSettler
                         self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->batch();
+                        // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->batch();
                         // $products = Yii::$app->db->createCommand('
                         //     SELECT * 
                         //     FROM product 
@@ -221,12 +221,12 @@ class OcSettler
                     // $source = Source::findOne($srcID);
                     // print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
-                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
+                    // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
                     // foreach ($products->batch(1000) as $productID) {
                     // foreach ($source->products as $product) {
-                    foreach ($products as $product) {
+                    foreach (Product::find()->batch() as $product) {
                         // $product = Product::findOne($productID);
                         $productExist = $db->createCommand('
                             SELECT * 
