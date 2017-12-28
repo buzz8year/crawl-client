@@ -184,16 +184,23 @@ class OcSettler
 
 
     static function myErrorHandler($code, $message, $file, $line) {
-      print_r('ERROR');
+        print_r(
+            PHP_EOL . 'ERROR' . PHP_EOL
+            $code . PHP_EOL
+            $message . PHP_EOL
+            $file . PHP_EOL
+            $line . PHP_EOL
+            'END' . PHP_EOL . PHP_EOL
+        );
     }
 
     static function fatalErrorShutdownHandler()
     {
-      $last_error = error_get_last();
-      if ($last_error['type'] === E_ERROR) {
-        // fatal error
-        myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
-      }
+        $last_error = error_get_last();
+        if ($last_error['type'] === E_ERROR) {
+            // fatal error
+            myErrorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
+        }
     }
 
 
