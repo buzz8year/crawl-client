@@ -36,8 +36,6 @@ class ParserController extends Controller
      */
     public function actionIndex()
     {
-        echo phpinfo();
-        
         $provisioner = new ParserProvisioner();
         $sources     = $provisioner->listSources();
 
