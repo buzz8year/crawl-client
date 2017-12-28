@@ -206,7 +206,7 @@ class OcSettler
                         self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0]);
+                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->batch();
                         // $products = Yii::$app->db->createCommand('
                         //     SELECT * 
                         //     FROM product 
@@ -225,8 +225,8 @@ class OcSettler
 
                     // foreach ($products->batch(1000) as $product) {
                     // foreach ($products->batch(1000) as $productID) {
-                    foreach ($source->products as $product) {
-                    // foreach ($products as $product) {
+                    // foreach ($source->products as $product) {
+                    foreach ($products as $product) {
                         // $product = Product::findOne($productID);
                         $productExist = $db->createCommand('
                             SELECT * 
