@@ -206,7 +206,7 @@ class OcSettler
                         self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
-                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->limit(5000)->all();
+                        $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->limit(2000)->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->batch();
                         // $products = Yii::$app->db->createCommand('
                         //     SELECT * 
@@ -220,7 +220,7 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
                     // $source = Source::findOne($srcID);
-                    // print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
+                    print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
