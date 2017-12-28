@@ -187,6 +187,7 @@ class OcSettler
      */
     public static function saveProducts(int $sourceId = null)
     {
+        ini_set('memory_limit', '-1');
         $db = self::getDb();
 
         $sources = ParserProvisioner::activeSources();
