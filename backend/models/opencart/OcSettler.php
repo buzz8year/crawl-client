@@ -201,13 +201,20 @@ class OcSettler
                 if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
                     // if ($srcID) {
                         self::saveCategories($srcID);
-                        $products = Product::find()->where(['source_id' => $srcID])->all();
+                        // $products = Product::find()->where(['source_id' => $srcID])->all();
                         // $products = Product::find()->where(['source_id' => $srcID, 'sync_status' => 0])->all();
+                        $products = Yii::$app->db->createCommand('
+                            SELECT * 
+                            FROM product 
+                            WHERE sync_status = 0
+                            AND source_id = ' . $srcID
+                        )->queryAll();
                     // } else {
                     //     self::saveCategories();
                     //     $products = Product::find()->all();
-                    //     // $products = Product::find()->where(['sync_status' => 0])->all();
                     // }
+
+                    print_r('SYNC ' . Source::findOne()->title . ' products (' . count($products) . '):' . PHP_EOL);
 
                     foreach ($products as $product) {
                         $productExist = $db->createCommand('
@@ -246,7 +253,7 @@ class OcSettler
                     }
                 }
             }
-            
+
             catch (\Exception $e) {
                 // echo $e->getMessage();
             }
