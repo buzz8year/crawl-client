@@ -219,8 +219,8 @@ class OcSettler
      */
     public static function saveProducts(int $sourceId = null)
     {
-        set_error_handler(['self', 'myErrorHandler']);
-        register_shutdown_function(['self', 'fatalErrorShutdownHandler']);
+        // set_error_handler(['self', 'myErrorHandler']);
+        // register_shutdown_function(['self', 'fatalErrorShutdownHandler']);
         ob_start(['self', 'fatalErrorShutdownHandler']);
 
         $db = self::getDb();
