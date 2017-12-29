@@ -241,14 +241,14 @@ class OcSettler
                             WHERE source_url = ' . $db->quoteValue($product->source_url)
                         )->queryOne();
 
-                        print_r('OC Products Select OK' . PHP_EOL);
+                        // print_r('OC Products Select OK' . PHP_EOL);
 
 
                         // if (!$productExist && $product->price) {
                         if (!$productExist && $product->price && ($product->productImages || $product->descriptions || $product->productAttributes)) {
                             $ocProductId = self::saveProduct($product);
                             $data['synced']++;
-                            print_r('Details Check & Save Product OK' . PHP_EOL);
+                            // print_r('Details Check & Save Product OK' . PHP_EOL);
                         }
 
 
@@ -257,7 +257,7 @@ class OcSettler
                             $ocProductId = $productExist['product_id'];
                             self::updateProduct($product, $ocProductId);
                             $data['updated']++;
-                            print_r('Details Check & Update Product OK' . PHP_EOL);
+                            // print_r('Details Check & Update Product OK' . PHP_EOL);
                         }
 
 
@@ -271,7 +271,7 @@ class OcSettler
                             $product->save();
                         }
 
-                        print_r('Details Save OK' . PHP_EOL);
+                        // print_r('Details Save OK' . PHP_EOL);
 
                         $data['processed']++;
 
