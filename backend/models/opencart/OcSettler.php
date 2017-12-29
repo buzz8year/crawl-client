@@ -199,9 +199,12 @@ class OcSettler
             'synced' => 0,
         ];
 
+        print_r(PHP_EOL . 'SYNCING' . PHP_EOL . PHP_EOL);
+
         foreach ($sources as $srcID => $source) {
             try {
                 if (!$sourceId || ($sourceId && $sourceId == $srcID)) {
+
                     // if ($srcID) {
                         // self::saveCategories($srcID);
                         // $products = Product::find()->where(['source_id' => $srcID])->all();
@@ -221,9 +224,9 @@ class OcSettler
                     //     $products = Product::find()->all();
                     // }
                     // $source = Source::findOne($srcID);
-                    // print_r('SYNC ' . $source->title . ' async products:' . PHP_EOL);
+                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products:' . PHP_EOL);
                     // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products->all()) . '):' . PHP_EOL);
-                    print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
+                    // print_r('SYNC ' . Source::findOne($srcID)->title . ' async products (' . count($products) . '):' . PHP_EOL);
 
                     // foreach ($products->batch(1000) as $product) {
                     // foreach ($products->batch(1000) as $productID) {
@@ -238,17 +241,25 @@ class OcSettler
                             WHERE source_url = ' . $db->quoteValue($product->source_url)
                         )->queryOne();
 
+                        print_r('OC Products Select OK' . PHP_EOL);
+
+
                         // if (!$productExist && $product->price) {
                         if (!$productExist && $product->price && ($product->productImages || $product->descriptions || $product->productAttributes)) {
                             $ocProductId = self::saveProduct($product);
                             $data['synced']++;
+                            print_r('Details Check & Save Product OK' . PHP_EOL);
                         }
+
+
 
                         elseif ($productExist) {
                             $ocProductId = $productExist['product_id'];
                             self::updateProduct($product, $ocProductId);
                             $data['updated']++;
+                            print_r('Details Check & Update Product OK' . PHP_EOL);
                         }
+
 
                         if (isset($ocProductId)) {
                             self::saveProductStore($ocProductId);
@@ -260,9 +271,12 @@ class OcSettler
                             $product->save();
                         }
 
+                        print_r('Details Save OK' . PHP_EOL);
+
                         $data['processed']++;
 
-                        if ($data['processed'] % 100 == 0 || $product == end($products)) {
+                        // if ($data['processed'] % 100 == 0 || $product == end($products)) {
+                        if ($data['processed'] % 100 == 0) {
                             print_r($data['processed'] . ' -> ');
                         }
                     }
