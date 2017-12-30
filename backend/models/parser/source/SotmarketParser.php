@@ -16,7 +16,7 @@ class SotmarketParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = '';
     const QUERY_KEYWORD  = 'q=';
 
-    const QUERY_AVAILABLE = 'attr[is_available][]=';
+    const QUERY_AVAILABLE = 'attr[is_available][]=1';
 
     const XPATH_WARNING = ''; // At Catalog/Search Page
     const XPATH_CATALOG = '//div[@data-conf-identifier=\'products-tile\']//div[@itemprop=\'itemListElement\']'; // At Catalog/Search Page
@@ -244,7 +244,7 @@ class SotmarketParser extends Parser implements ParserSourceInterface
         $url = '';
 
         if ($categorySourceId && !$keyword) {
-            $url = $category->source_url . '?' . self::QUERY_AVAILABLE . 1;
+            $url = $category->source_url . '?' . self::QUERY_AVAILABLE;
         }
 
         // if ($categorySourceId && $keyword) {

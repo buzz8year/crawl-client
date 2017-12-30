@@ -16,6 +16,8 @@ class BooksParser extends Parser implements ParserSourceInterface
     const QUERY_CATEGORY = 's[subcategory]=';
     const QUERY_KEYWORD  = 's[query]=';
 
+    const QUERY_AVAILABLE = 'filter[view]=only_available';
+
     const XPATH_WARNING = ''; // At Catalog/Search Page
     const XPATH_CATALOG = '//div[@id=\'wares_list_block\']//div[@class=\'catalog\']//tr'; // At Catalog/Search Page
 
@@ -233,7 +235,7 @@ class BooksParser extends Parser implements ParserSourceInterface
         $url = '';
 
         if ($categorySourceId && !$keyword) {
-            $url = $domain . $category->source_url;
+            $url = $domain . $category->source_url . '?' . self::QUERY_AVAILABLE;
         }
 
         if ($categorySourceId && $keyword) {
