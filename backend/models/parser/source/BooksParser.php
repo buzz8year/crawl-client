@@ -138,11 +138,13 @@ class BooksParser extends Parser implements ParserSourceInterface
                     $price = preg_replace('/[^0-9]/', '', $child->textContent);
                 }
             }
-            $data[] = [
-                'price' => $price ?? null,
-                'name'  => $title->textContent,
-                'href'  => self::$model->domain . $title->getAttribute('href'),
-            ];
+            if (isset($title) && isset($price)) {
+                $data[] = [
+                    'price' => $price ?? null,
+                    'name'  => $title->textContent,
+                    'href'  => self::$model->domain . $title->getAttribute('href'),
+                ];
+            }
         }
 
         return $data;
