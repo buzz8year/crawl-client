@@ -150,7 +150,11 @@ class OcSettler
     {
         $db = self::getDb();
 
-        $productsYii = Product::find()->select('source_url')->asArray()->all();
+        // $productsYii = Product::find()->select('source_url')->asArray()->all();
+        $productsYii = Yii::$app->db->createCommand('
+            SELECT source_url
+            FROM product
+        ')->queryAll();
 
         $productsOc = $db->createCommand('
             SELECT product_id, source_url
