@@ -151,10 +151,10 @@ class OcSettler
         $db = self::getDb();
 
         // $productsYii = Product::find()->select('source_url')->asArray()->all();
-        $productsYii = Yii::$app->db->createCommand('
-            SELECT source_url
-            FROM product
-        ')->queryAll();
+        // $productsYii = Yii::$app->db->createCommand('
+        //     SELECT source_url
+        //     FROM product
+        // ')->queryAll();
 
         $productsOc = $db->createCommand('
             SELECT product_id, source_url
@@ -168,14 +168,16 @@ class OcSettler
         ];
 
         foreach ($productsOc as $key => $productOc) {
-            if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
+
+            // if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
+            if (!Product::find()->where(['source_url' => $productOc['source_url']])->one()) {
                 $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
                 $data['misfits']++;
             }
             // if ($key % 100 == 0 || $productOc == end($productsOc)) {
-            // if ($key % 100 == 0) {
-            //     print_r($key . ' -> ');
-            // }
+            if ($key % 100 == 0) {
+                print_r($key . ' -> ');
+            }
         }
 
         $db->createCommand('DELETE p FROM oc_product_description pd RIGHT JOIN oc_product p ON p.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
