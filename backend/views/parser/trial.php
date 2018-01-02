@@ -77,7 +77,7 @@ echo Breadcrumbs::widget([
                             'class' => 'btn btn-white', 
                             'style' => 'display: block',
                             'value' => 1, 
-                            'disabled' => !(bool)count(Source::findOne($model->id)->products),
+                            'disabled' => !(bool)Source::findOne($model->id)->countProducts,
                             'title' => 'Обновить детализацию всех имеющ. товаров ресурса',
                         ]
                     ) 
@@ -97,8 +97,8 @@ echo Breadcrumbs::widget([
                 <?php if ($syncData) : ?>
                     <small>Обработано: <?= $syncData['processed'] ?>, Синхронизировано: <?= $syncData['synced'] ?></small><br/>
                 <?php else: ?>
-                    <small>Товаров: <?= count(Source::findOne($model->id)->products) ?></small><br/>
-                    <small>Несинх.: <?= count(Source::findOne($model->id)->asyncProducts) ?></small><br/>
+                    <small>Товаров: <?= Source::findOne($model->id)->countProducts ?></small><br/>
+                    <small>Несинх.: <?= Source::findOne($model->id)->countAsyncProducts ?></small><br/>
                 <?php endif; ?>
             </div>
 

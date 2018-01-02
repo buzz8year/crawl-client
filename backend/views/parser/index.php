@@ -23,6 +23,7 @@ use backend\models\Source;
 			echo '<br/><small class="text-muted">Товаров: ' . Source::findOne($id)->countProducts . '</small>';
 			// echo '<br/><small class="text-muted">Несинх.: ' . count(Source::findOne($id)->asyncProducts) . '</small>';
 			echo '<br/><small class="text-muted">Несинх.: ' . Source::findOne($id)->countAsyncProducts . '</small>';
+			
 			echo '</div>';
 		} 
 	?>
