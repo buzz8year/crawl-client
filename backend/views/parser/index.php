@@ -18,8 +18,11 @@ use backend\models\Source;
 			}
 			echo '<br/><small>' . Html::a($source['domain'], $source['domain']) . '</small>';
 			// echo '<br/><small class="text-muted">Категорий: ' . count(Source::findOne($id)->categorySources) . '</small>';
-			echo '<br/><small class="text-muted">Товаров: ' . count(Source::findOne($id)->liteProducts) . '</small>';
+			echo '<br/><small class="text-muted">Категорий: ' . Source::findOne($id)->countCategorySources . '</small>';
+			// echo '<br/><small class="text-muted">Товаров: ' . count(Source::findOne($id)->liteProducts) . '</small>';
+			echo '<br/><small class="text-muted">Товаров: ' . Source::findOne($id)->countProducts . '</small>';
 			// echo '<br/><small class="text-muted">Несинх.: ' . count(Source::findOne($id)->asyncProducts) . '</small>';
+			echo '<br/><small class="text-muted">Несинх.: ' . Source::findOne($id)->countAsyncProducts . '</small>';
 			echo '</div>';
 		} 
 	?>

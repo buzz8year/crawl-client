@@ -140,6 +140,12 @@ class Source extends \yii\db\ActiveRecord
     }
 
 
+    public function getCountCategorySources()
+    {
+        return CategorySource::find()->where(['source_id' => $this->id])->count();
+    }
+
+
     public function getHeaderSources()
     {
         return $this->hasMany(HeaderSource::className(), ['source_id' => 'id']);
@@ -254,9 +260,9 @@ class Source extends \yii\db\ActiveRecord
     }
 
 
-    public function getLiteProducts()
+    public function getCountProducts()
     {
-        return $this->hasMany(Product::className(), ['source_id' => 'id'])->asArray();
+        return Product::find()->where(['source_id' => $this->id])->count();
     }
 
 
@@ -264,6 +270,14 @@ class Source extends \yii\db\ActiveRecord
     {
         return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->asArray()->all();
     }
+
+
+
+    public function getCountAsyncProducts()
+    {
+        return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->count();
+    }
+
 
 
     public function getProductUrls()
