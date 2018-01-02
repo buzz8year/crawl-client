@@ -71,7 +71,7 @@ echo Breadcrumbs::widget([
 
             <div class="form-group pull-right text-right text-muted">
                 <?= Html::submitButton(
-                        'Обновить детализацию (' . count(Source::findOne($model->id)->products) . ') товаров', 
+                        'Обновить детализацию (' . Source::findOne($model->id)->countProducts . ') товаров', 
                         [
                             'name'  => 'updateDetails', 
                             'class' => 'btn btn-white', 
