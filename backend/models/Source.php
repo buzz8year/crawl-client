@@ -254,6 +254,12 @@ class Source extends \yii\db\ActiveRecord
     }
 
 
+    public function getLiteProducts()
+    {
+        return $this->hasMany(Product::className(), ['source_id' => 'id'])->asArray();
+    }
+
+
     public function getAsyncProducts()
     {
         return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->asArray()->all();
