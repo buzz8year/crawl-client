@@ -256,7 +256,7 @@ class Source extends \yii\db\ActiveRecord
 
     public function getAsyncProducts()
     {
-        return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->all();
+        return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->asArray()->all();
     }
 
 
