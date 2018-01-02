@@ -17,8 +17,8 @@ use backend\models\Source;
 				echo '<span class=\'text-uppercase text-danger\'>' . $source['title'] . '</span>';
 			}
 			echo '<br/><small>' . Html::a($source['domain'], $source['domain']) . '</small>';
-			echo '<br/><small class="text-muted">Категорий: ' . count(Source::findOne($id)->categorySources) . '</small>';
-			// echo '<br/><small class="text-muted">Товаров: ' . count(Source::findOne($id)->liteProducts) . '</small>';
+			// echo '<br/><small class="text-muted">Категорий: ' . count(Source::findOne($id)->categorySources) . '</small>';
+			echo '<br/><small class="text-muted">Товаров: ' . count(Source::findOne($id)->liteProducts) . '</small>';
 			// echo '<br/><small class="text-muted">Несинх.: ' . count(Source::findOne($id)->asyncProducts) . '</small>';
 			echo '</div>';
 		} 
