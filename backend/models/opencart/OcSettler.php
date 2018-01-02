@@ -175,9 +175,9 @@ class OcSettler
                 $data['misfits']++;
             }
             // if ($key % 100 == 0 || $productOc == end($productsOc)) {
-            if ($key % 100 == 0) {
-                print_r($key . ' -> ');
-            }
+            // if ($key % 100 == 0) {
+            //     print_r($key . ' -> ');
+            // }
         }
 
         $db->createCommand('DELETE p FROM oc_product_description pd RIGHT JOIN oc_product p ON p.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
