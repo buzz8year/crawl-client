@@ -162,7 +162,7 @@ class OcSettler
         // ')->queryAll();
 
         // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
-        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset(300000);
+        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset(39000);
 
         $data = [
             // 'total' => count($productsOc),
@@ -179,8 +179,8 @@ class OcSettler
 
                 // if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
                 if (!Product::find()->where(['source_url' => $productOc['source_url']])->exists()) {
-                    // $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
-                    $data['delete'][] = $productOc['product_id'];
+                    $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
+                    // $data['delete'][] = $productOc['product_id'];
                     $data['misfits']++;
                 }
                 // if ($key % 100 == 0 || $productOc == end($productsOc)) {
@@ -194,7 +194,7 @@ class OcSettler
 
         // print_r($data['delete']);
 
-        $db->createCommand('DELETE FROM oc_product_description WHERE product_id IN (' . implode(',', $data['delete']) . ')')->execute();
+        // $db->createCommand('DELETE FROM oc_product_description WHERE product_id IN (' . implode(',', $data['delete']) . ')')->execute();
 
         $db->createCommand('DELETE p FROM oc_product_description pd RIGHT JOIN oc_product p ON p.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
         $db->createCommand('DELETE ps FROM oc_product_description pd RIGHT JOIN oc_product_to_store ps ON ps.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
