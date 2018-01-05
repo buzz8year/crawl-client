@@ -174,16 +174,16 @@ class OcSettler
         // foreach ($productsOc->each(2, $db) as $key => $productOc) {
         foreach ($productsOc->each(100, $db) as $key => $productOc) {
             // print_r($productOc);
-            $data['total']++;
+            // $data['total']++;
 
             // if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
             if (!Product::find()->where(['source_url' => $productOc['source_url']])->exists()) {
                 // $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
                 $data['delete'][] = $productOc['product_id'];
-                $data['misfits']++;
+                // $data['misfits']++;
             }
             // if ($key % 100 == 0 || $productOc == end($productsOc)) {
-            if ($key % 100 == 0) {
+            if ($key % 10000 == 0) {
                 print_r($key . ' -> ');
             }
         }
@@ -191,7 +191,7 @@ class OcSettler
         // print_r($data['delete']);
 
         $db->createCommand('DELETE FROM oc_product_description WHERE product_id IN (' . implode(',', $data['delete']) . ')')->execute();
-        
+
         $db->createCommand('DELETE p FROM oc_product_description pd RIGHT JOIN oc_product p ON p.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
         $db->createCommand('DELETE ps FROM oc_product_description pd RIGHT JOIN oc_product_to_store ps ON ps.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
         $db->createCommand('DELETE pc FROM oc_product_description pd RIGHT JOIN oc_product_to_category pc ON pc.product_id = pd.product_id WHERE pd.product_id IS NULL')->execute();
