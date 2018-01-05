@@ -84,6 +84,8 @@ class Parser implements ParserInterface
     {
         $random  = self::$agents ? rand(0, count(self::$agents) - 1) : null;
         $agent   = self::$agents[$random] ?? [];
+
+        // print_r(self::$proxies);
         $options = [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RETURNTRANSFER => true,
@@ -239,7 +241,7 @@ class Parser implements ParserInterface
         curl_close($curl);
 
 
-        if (!$response && self::$proxies) {
+        if ((!$response || $info['http_code'] == 407) && self::$proxies) {
             $this->processResponse(1, $url);
             return $this->curlSession($url);
         }
@@ -254,7 +256,7 @@ class Parser implements ParserInterface
         }
 
         if ($response) {
-            // print_r($info);
+            print_r($info);
             // $captcha = $this->getNodes($response, '//*[contains(@*, \'captcha\')]');
             // if ($captcha && $captcha->length) {
             //     $this->processResponse(1, $url);

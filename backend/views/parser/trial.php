@@ -19,8 +19,6 @@ echo Breadcrumbs::widget([
     'links' => isset($this->params['newcrumbs']) ? $this->params['newcrumbs'] : [],
 ]);
 
-// OcSettler::saveProducts();
-
 ?>
 
 <div class="row">
@@ -219,14 +217,12 @@ echo Breadcrumbs::widget([
     <div class="row">
         <div class="col-lg-12">
 
-
-
             <?php 
-            if ($model->warnings) {
-                foreach ($model->warnings as $warning) {
-                    echo '<span class="label label-danger">Сообщение с запр. страницы</span>' . $warning;
+                if ($model->warnings) {
+                    foreach ($model->warnings as $warning) {
+                        echo '<span class="label label-danger">Сообщение с запр. страницы</span>' . $warning;
+                    }
                 }
-            }
             ?>
 
             <table class="table table-striped">
@@ -242,7 +238,7 @@ echo Breadcrumbs::widget([
                                         <img src="<?= $product['images'][0]['thumb'] ? $product['images'][0]['thumb'] : $product['images'][0]['fullsize'] ?>" height="30" />
                                     <?php endif; ?>
                                 </td> -->
-                                <td><strong  style="display:block; max-width: 20vw; overflow: hidden;"><?= $product['name'] ?></strong></td>
+                                <td><strong style="display:block; max-width: 20vw; overflow: hidden;"><?= $product['name'] ?></strong></td>
                                 <td width="10%">Цена: <?= $product['price'] ? $product['price'] : '' ?></td>
                                 <td><a href="<?= $product['href'] ?>" style="display:block; max-width: 30vw; overflow: hidden;"><?= $product['href'] ?></a></td>
                                 
