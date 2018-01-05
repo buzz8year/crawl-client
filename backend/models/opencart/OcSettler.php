@@ -162,7 +162,7 @@ class OcSettler
         // ')->queryAll();
 
         // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
-        $productsOc = (new \yii\db\Query)->from('oc_product_description');
+        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset(300000);
 
         $data = [
             // 'total' => count($productsOc),
@@ -173,18 +173,22 @@ class OcSettler
 
         // foreach ($productsOc->each(2, $db) as $key => $productOc) {
         foreach ($productsOc->each(100, $db) as $key => $productOc) {
-            // print_r($productOc);
-            // $data['total']++;
+            try {
+                // print_r($productOc);
+                $data['total']++;
 
-            // if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
-            if (!Product::find()->where(['source_url' => $productOc['source_url']])->exists()) {
-                // $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
-                $data['delete'][] = $productOc['product_id'];
-                // $data['misfits']++;
-            }
-            // if ($key % 100 == 0 || $productOc == end($productsOc)) {
-            if ($key == 0 || $key % 3000 == 0) {
-                print_r($key . ' -> ');
+                // if (!in_array($productOc['source_url'], array_column($productsYii, 'source_url'))) {
+                if (!Product::find()->where(['source_url' => $productOc['source_url']])->exists()) {
+                    // $db->createCommand('DELETE FROM oc_product_description WHERE product_id = ' . $productOc['product_id'])->execute();
+                    $data['delete'][] = $productOc['product_id'];
+                    $data['misfits']++;
+                }
+                // if ($key % 100 == 0 || $productOc == end($productsOc)) {
+                if ($key % 100 == 0) {
+                    print_r($key . ' -> ');
+                }
+            } catch (\Exception $e) {
+                print_r('error -> ');
             }
         }
 
