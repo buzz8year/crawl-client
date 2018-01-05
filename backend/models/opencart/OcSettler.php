@@ -183,7 +183,7 @@ class OcSettler
                 // $data['misfits']++;
             }
             // if ($key % 100 == 0 || $productOc == end($productsOc)) {
-            if ($key % 10000 == 0) {
+            if ($key == 0 || $key % 3000 == 0) {
                 print_r($key . ' -> ');
             }
         }
