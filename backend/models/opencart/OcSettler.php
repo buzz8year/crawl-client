@@ -161,7 +161,8 @@ class OcSettler
         //     FROM oc_product_description
         // ')->queryAll();
 
-        $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
+        // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
+        $productsOc = (new \yii\db\Query)->from('oc_product_description');
 
         $data = [
             // 'total' => count($productsOc),
