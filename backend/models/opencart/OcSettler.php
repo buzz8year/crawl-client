@@ -148,6 +148,15 @@ class OcSettler
      */
     public static function deleteMisfits(int $sourceID = null)
     {
+        session_write_close();
+
+        $data = [
+            // 'total' => count($productsOc),
+            'total' => 0,
+            'misfits' => 0,
+            'delete' => [],
+        ];
+
         $db = self::getDb();
 
         // $productsYii = Product::find()->select('source_url')->asArray()->all();
@@ -161,16 +170,13 @@ class OcSettler
         //     FROM oc_product_description
         // ')->queryAll();
 
+        $offset = 46000;
+
         // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
-        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset(39000);
+        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset($offset);
         // $productsOc = (new \yii\db\Query)->from('oc_product_description');
 
-        $data = [
-            // 'total' => count($productsOc),
-            'total' => 0,
-            'misfits' => 0,
-            'delete' => [],
-        ];
+
 
         // foreach ($productsOc->each(2, $db) as $key => $productOc) {
         foreach ($productsOc->each(100, $db) as $key => $productOc) {
@@ -186,10 +192,10 @@ class OcSettler
                 }
                 // if ($key % 100 == 0 || $productOc == end($productsOc)) {
                 if ($key % 100 == 0) {
-                    print_r($key . ' -> ');
+                    print_r(($offset + $key) . ' -> ');
                 }
             } catch (\Throwable $e) {
-                print_r('error -> ');
+                print_r('error on key ' . ($offset + $key) . ' -> ');
             }
         }
 
