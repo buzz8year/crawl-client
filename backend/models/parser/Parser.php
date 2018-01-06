@@ -256,7 +256,7 @@ class Parser implements ParserInterface
         }
 
         if ($response) {
-            print_r($info);
+            // print_r($info);
             // $captcha = $this->getNodes($response, '//*[contains(@*, \'captcha\')]');
             // if ($captcha && $captcha->length) {
             //     $this->processResponse(1, $url);
