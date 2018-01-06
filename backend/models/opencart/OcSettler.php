@@ -170,13 +170,15 @@ class OcSettler
         //     FROM oc_product_description
         // ')->queryAll();
 
-        $offset = 46000;
+        // $offset = 46000;
+        $offset = 0;
 
         // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
         $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset($offset);
         // $productsOc = (new \yii\db\Query)->from('oc_product_description');
 
 
+        print_r($offset . ' -> ');
 
         // foreach ($productsOc->each(2, $db) as $key => $productOc) {
         foreach ($productsOc->each(100, $db) as $key => $productOc) {
