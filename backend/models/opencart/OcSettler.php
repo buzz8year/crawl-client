@@ -163,6 +163,7 @@ class OcSettler
 
         // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
         $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset(39000);
+        // $productsOc = (new \yii\db\Query)->from('oc_product_description');
 
         $data = [
             // 'total' => count($productsOc),
@@ -187,7 +188,7 @@ class OcSettler
                 if ($key % 100 == 0) {
                     print_r($key . ' -> ');
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 print_r('error -> ');
             }
         }
