@@ -16,6 +16,7 @@ class OcSettler
      */
     public static function getDb()
     {
+        Yii::$app->ocdb->open();
         return Yii::$app->ocdb;
     }
 
@@ -158,7 +159,6 @@ class OcSettler
         ];
 
         $db = self::getDb();
-        $db->open();
 
         // $productsYii = Product::find()->select('source_url')->asArray()->all();
         // $productsYii = Yii::$app->db->createCommand('
@@ -197,7 +197,7 @@ class OcSettler
                 if ($key % 100 == 0) {
                     print_r(($offset + $key) . ' -> ');
                 }
-                
+
             } catch (\Throwable $e) {
                 print_r('error on key ' . ($offset + $key) . ' -> ');
             }
@@ -321,8 +321,8 @@ class OcSettler
                 }
             }
 
-            catch (\Exception $e) {
-                // echo $e->getMessage();
+            catch (\Throwable $e) {
+                print_r('error -> ');
             }
 
         }
