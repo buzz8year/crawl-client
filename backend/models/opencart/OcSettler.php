@@ -174,8 +174,8 @@ class OcSettler
         // $offset = 46000;
         $offset = 0;
 
-        // $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
-        $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset($offset);
+        $productsOc = (new \yii\db\Query)->from('oc_product_description')->orderBy('product_id DESC');
+        // $productsOc = (new \yii\db\Query)->from('oc_product_description')->offset($offset);
         // $productsOc = (new \yii\db\Query)->from('oc_product_description');
 
 
@@ -197,6 +197,7 @@ class OcSettler
                 if ($key % 100 == 0) {
                     print_r(($offset + $key) . ' -> ');
                 }
+                
             } catch (\Throwable $e) {
                 print_r('error on key ' . ($offset + $key) . ' -> ');
             }
