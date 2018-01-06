@@ -158,6 +158,7 @@ class OcSettler
         ];
 
         $db = self::getDb();
+        $db->open();
 
         // $productsYii = Product::find()->select('source_url')->asArray()->all();
         // $productsYii = Yii::$app->db->createCommand('
