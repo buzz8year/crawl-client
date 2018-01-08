@@ -80,6 +80,9 @@ class ParseController extends \yii\console\Controller
      */
     public function actionSync()
     {
+        if ($this->src && Source::findOne($this->src)->status === 0) {
+            return;
+        }
         // Yii::info('SYNC ' . ($this->src ? Source::findOne($this->src)->title : '') . ' Products:' . PHP_EOL, 'parse-console');
         // $this->stdout('SYNC ' . ($this->src ? Source::findOne($this->src)->title : '') . ' Products:' . PHP_EOL);
 
