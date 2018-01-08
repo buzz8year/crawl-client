@@ -119,9 +119,9 @@ class OzonParser extends Parser implements ParserSourceInterface
                         }
                     }
 
-                    // if ($key == 0) {
-                    //     break;
-                    // }
+                    if ($key == 0) {
+                        break;
+                    }
                 }
             }
         }
