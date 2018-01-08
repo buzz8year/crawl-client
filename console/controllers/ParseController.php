@@ -35,7 +35,13 @@ class ParseController extends \yii\console\Controller
     public function actionIndex()
     {
         if ($this->src) {
-            $this->parseSource($this->src, $this->sale);
+            $source = Source::findOne($this->src);
+            if ($source->status) {
+                $this->parseSource($this->src, $this->sale);
+            } else {
+                Yii::info('Source ' . $source->title . ' status is OFF.' . PHP_EOL, 'parse-console');
+                $this->stdout('Source ' . $source->title . ' status is OFF.' . PHP_EOL);
+            }
         } else {
             $provisioner = new ParserProvisioner();
             foreach ($provisioner->activeSources() as $sourceId => $source) {
