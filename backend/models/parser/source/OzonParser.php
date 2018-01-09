@@ -46,36 +46,34 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                 foreach ($nodes as $key => $node) {
                     $content = file_get_contents('http:' . $node->getAttribute('download'));
-                    $lines = explode("\n", $content);
+                    $lines = explode("\n", $content); // Double Qoute
 
-                    $dataL1 = [];
-                    $dataL2 = [];
-                    $dataL3 = [];
-                    $dataL4 = [];
+                    unset($node, $content);
+
+                    $dataL1 = $dataL2 = $dataL3 = $dataL4 = [];
 
                     foreach ($lines as $keyLine => &$line) {
+                        // Define NEST by counting blank spaces
+                        $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
                         $expLine = explode('(', rtrim(trim($line), ')'));
+
+                        unset($line);
+
                         $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0])))); // With BOM markups deleted
 
                         if ($keyLine == 0) {
                             $data[$key] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
+                                // 'csid'       => '',
+                                // 'dump'       => '',
+                                // 'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 0,
                             ];
                         }
 
-                        // Define NEST by counting blank spaces
-                        $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
-
                         if ($nest == 1) {
                             $data[$key]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 1,
@@ -85,9 +83,6 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                         if ($nest == 2) {
                             $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 2,
@@ -97,9 +92,6 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                         if ($nest == 3) {
                             $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 3,
@@ -109,9 +101,6 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                         if ($nest == 4) {
                             $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 4,
@@ -119,7 +108,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                             $dataL4[] = $keyLine;
                         }
 
-                        unset($nest, $keyLine, $line, $expLine, $title);
+                        unset($nest, $keyLine, $expLine, $title);
 
                     }
 
@@ -131,15 +120,11 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
+                    unset($key, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
 
                 }
             }
         }
-
-        // $usage = memory_get_peak_usage(true);
-        // print_r('Peak: ' . $usage . PHP_EOL);
-        // print_r('Peak: ' . ($usage / 1024 / 1024) . ' MB' . PHP_EOL);
 
         return $data;
     }
