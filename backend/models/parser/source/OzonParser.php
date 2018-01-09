@@ -118,7 +118,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    unset($key, $lines, $dataL1, $dataL2, $dataL3 $usg);
+                    unset($key, $lines, $dataL1, $dataL2, $dataL3, $usg);
                 }
             }
         }
