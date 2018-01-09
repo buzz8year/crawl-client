@@ -165,41 +165,12 @@ class ParseController extends \yii\console\Controller
 
 
     /**
-     * TEMP: Trim Letu.ru product urls
      * TODO: Remove
      * @return void
      */
-    public function actionLetual()
+    public function actionInfo()
     {
-        $db = Yii::$app->db;
-        $products = $db->createCommand('
-            SELECT * 
-            FROM product
-            WHERE source_id = 26
-        ')->queryAll();
-
-        $urls = [];
-        foreach ($products as $key => $product) {
-            $exp = explode(';', $product['source_url']);
-
-            if (!in_array($exp[0], $urls)) {
-                $urls[] = $exp[0];
-                $db->createCommand('
-                    UPDATE product
-                    SET source_url = ' . $db->quoteValue($exp[0]) . '
-                    WHERE id = ' . $product['id']
-                )->execute();
-            } else {
-                $db->createCommand('
-                    DELETE FROM product
-                    WHERE id = ' . $product['id']
-                )->execute();
-            }
-
-            if ($key % 100 == 0 || $product == end($products)) {
-                $this->stdout($key . ' -> ');
-            }
-        }
+        print_r(phpinfo());
     }
 
 
