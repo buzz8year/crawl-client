@@ -44,7 +44,15 @@ class OzonParser extends Parser implements ParserSourceInterface
         if ($response = $this->sessionClient(self::$model->domain . '/context/partner_xml/')) {
             if (($nodes = $this->getNodes($response, '//a[@download]')) && $nodes->length) {
 
-                foreach ((array)$nodes as $key => $node) {
+                $dataNodes = [];
+                foreach ($nodes as $nod) {
+                    $dataNodes[] = $nod;
+                    unset($nod);
+                }
+                unset($nodes);
+                
+                // foreach ($nodes as $key => $node) {
+                foreach ($dataNodes as $key => &$node) {
                     $content = file_get_contents('http:' . $node->getAttribute('download'));
                     $lines = explode("\n", $content); // Double Qoute
 
@@ -99,13 +107,13 @@ class OzonParser extends Parser implements ParserSourceInterface
                             $dataL3[] = $keyLine;
                         }
 
-                        if ($nest == 4) {
-                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
-                                'href'       => $expLine[1],
-                                'title'      => $title,
-                                'nest_level' => 4,
-                            ];
-                        }
+                        // if ($nest == 4) {
+                        //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
+                        //         'href'       => $expLine[1],
+                        //         'title'      => $title,
+                        //         'nest_level' => 4,
+                        //     ];
+                        // }
 
                         unset($nest, $keyLine, $expLine, $title);
                     }
