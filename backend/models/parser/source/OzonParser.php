@@ -83,17 +83,17 @@ class OzonParser extends Parser implements ParserSourceInterface
                             $dataL1[] = $keyLine;
                         }
 
-                        // if ($nest == 2) {
-                        //     $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
-                        //         'csid'       => '',
-                        //         'dump'       => '',
-                        //         'alias'      => '',
-                        //         'href'       => $expLine[1],
-                        //         'title'      => $title,
-                        //         'nest_level' => 2,
-                        //     ];
-                        //     $dataL2[] = $keyLine;
-                        // }
+                        if ($nest == 2) {
+                            $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 2,
+                            ];
+                            $dataL2[] = $keyLine;
+                        }
 
                         // if ($nest == 3) {
                         //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
