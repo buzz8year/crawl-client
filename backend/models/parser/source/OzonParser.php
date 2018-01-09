@@ -119,7 +119,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                         //     $dataL4[] = $keyLine;
                         // }
 
-                        // unset($nest, $keyLine, $line, $expLine, $title);
+                        unset($nest, $keyLine, $line, $expLine, $title);
 
                     }
 
@@ -131,7 +131,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
+                    unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
 
                 }
             }
