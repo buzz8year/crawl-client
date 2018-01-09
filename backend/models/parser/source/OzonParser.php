@@ -54,9 +54,10 @@ class OzonParser extends Parser implements ParserSourceInterface
                 // foreach ($nodes as $key => $node) {
                 foreach ($dataNodes as $key => &$node) {
                     $content = file_get_contents('http:' . $node->getAttribute('download'));
+                    unset($node);
+                    
                     $lines = explode("\n", $content); // Double Qoute
-
-                    unset($node, $content);
+                    unset($content);
 
                     $dataL1 = $dataL2 = $dataL3 = [];
 
@@ -64,16 +65,13 @@ class OzonParser extends Parser implements ParserSourceInterface
                         // Define NEST by counting blank spaces
                         $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
                         $expLine = explode('(', rtrim(trim($line), ')'));
-
                         unset($line);
 
                         $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0])))); // With BOM markups deleted
+                        unset($expLine[0]);
 
                         if ($keyLine == 0) {
                             $data[$key] = [
-                                // 'csid'       => '',
-                                // 'dump'       => '',
-                                // 'alias'      => '',
                                 'href'       => $expLine[1],
                                 'title'      => $title,
                                 'nest_level' => 0,
@@ -115,17 +113,17 @@ class OzonParser extends Parser implements ParserSourceInterface
                         //     ];
                         // }
 
-                        unset($nest, $keyLine, $expLine, $title);
+                        unset($keyLine, $nest, $expLine, $title);
                     }
 
-                    $usg = memory_get_peak_usage(true);
-                    print_r('Peak: ' . $usg . PHP_EOL);
+                    // $usg = memory_get_peak_usage(true);
+                    // print_r('Peak: ' . $usg . PHP_EOL);
 
                     // if ($key == 3) {
                     //     break;
                     // }
 
-                    unset($key, $node, $lines, $dataL1, $dataL2, $dataL3, $usg);
+                    unset($key, $node, $lines, $dataL1, $dataL2, $dataL3);
                 }
             }
         }
