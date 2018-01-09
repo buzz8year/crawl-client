@@ -55,7 +55,7 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                     foreach ($lines as $keyLine => $line) {
                         $expLine = explode('(', rtrim(trim($line), ')'));
-                        $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0]))));
+                        $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0])))); // With BOM markups deleted
 
                         if ($keyLine == 0) {
                             $data[$key] = [
@@ -68,64 +68,65 @@ class OzonParser extends Parser implements ParserSourceInterface
                             ];
                         }
 
+                        // Define NEST by counting blank spaces
                         $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
 
-                        if ($nest == 1) {
-                            $data[$key]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
-                                'href'       => $expLine[1],
-                                'title'      => $title,
-                                'nest_level' => 1,
-                            ];
-                            $dataL1[] = $keyLine;
-                        }
+                        // if ($nest == 1) {
+                        //     $data[$key]['children'][$keyLine] = [
+                        //         'csid'       => '',
+                        //         'dump'       => '',
+                        //         'alias'      => '',
+                        //         'href'       => $expLine[1],
+                        //         'title'      => $title,
+                        //         'nest_level' => 1,
+                        //     ];
+                        //     $dataL1[] = $keyLine;
+                        // }
 
-                        if ($nest == 2) {
-                            $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
-                                'href'       => $expLine[1],
-                                'title'      => $title,
-                                'nest_level' => 2,
-                            ];
-                            $dataL2[] = $keyLine;
-                        }
+                        // if ($nest == 2) {
+                        //     $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
+                        //         'csid'       => '',
+                        //         'dump'       => '',
+                        //         'alias'      => '',
+                        //         'href'       => $expLine[1],
+                        //         'title'      => $title,
+                        //         'nest_level' => 2,
+                        //     ];
+                        //     $dataL2[] = $keyLine;
+                        // }
 
-                        if ($nest == 3) {
-                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
-                                'href'       => $expLine[1],
-                                'title'      => $title,
-                                'nest_level' => 3,
-                            ];
-                            $dataL3[] = $keyLine;
-                        }
+                        // if ($nest == 3) {
+                        //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
+                        //         'csid'       => '',
+                        //         'dump'       => '',
+                        //         'alias'      => '',
+                        //         'href'       => $expLine[1],
+                        //         'title'      => $title,
+                        //         'nest_level' => 3,
+                        //     ];
+                        //     $dataL3[] = $keyLine;
+                        // }
 
-                        if ($nest == 4) {
-                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
-                                'csid'       => '',
-                                'dump'       => '',
-                                'alias'      => '',
-                                'href'       => $expLine[1],
-                                'title'      => $title,
-                                'nest_level' => 4,
-                            ];
-                            $dataL4[] = $keyLine;
-                        }
+                        // if ($nest == 4) {
+                        //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
+                        //         'csid'       => '',
+                        //         'dump'       => '',
+                        //         'alias'      => '',
+                        //         'href'       => $expLine[1],
+                        //         'title'      => $title,
+                        //         'nest_level' => 4,
+                        //     ];
+                        //     $dataL4[] = $keyLine;
+                        // }
                     }
 
 
                     $usg = memory_get_peak_usage(true);
                     print_r('Peak: ' . $usg . PHP_EOL);
 
-                    if ($key == 3) {
-                        break;
-                    }
+                    // if ($key == 3) {
+                    //     break;
+                    // }
 
                     // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4);
 
