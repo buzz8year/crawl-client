@@ -121,7 +121,7 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                     // unset($content, $lines, $dataL1, $dataL2, $dataL3, $dataL4);
 
-                    if ($key == 3) {
+                    if ($key == 6) {
                         break;
                     }
                 }
@@ -130,7 +130,7 @@ class OzonParser extends Parser implements ParserSourceInterface
 
         $usage = memory_get_peak_usage(true);
         // print_r('Peak: ' . $usage . PHP_EOL);
-        print_r('Peak: ' . round($usage / 1024 / 1024, 2) . ' MB' . PHP_EOL);
+        print_r('Peak: ' . ($usage / 1024 / 1024) . ' MB' . PHP_EOL);
 
         return $data;
     }
