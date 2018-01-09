@@ -46,16 +46,17 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                 $dataNodes = [];
                 foreach ($nodes as $nod) {
-                    $dataNodes[] = $nod;
+                    $dataNodes[] = $nod->getAttribute('download');
                     unset($nod);
                 }
                 unset($nodes);
 
                 // foreach ($nodes as $key => $node) {
                 foreach ($dataNodes as $key => &$node) {
-                    $content = file_get_contents('http:' . $node->getAttribute('download'));
+                    // $content = file_get_contents('http:' . $node->getAttribute('download'));
+                    $content = file_get_contents('http:' . $node);
                     unset($node);
-                    
+
                     $lines = explode("\n", $content); // Double Qoute
                     unset($content);
 
