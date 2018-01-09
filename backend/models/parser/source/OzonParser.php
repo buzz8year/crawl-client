@@ -123,12 +123,12 @@ class OzonParser extends Parser implements ParserSourceInterface
                     $usg = memory_get_peak_usage(true);
                     print_r('Peak: ' . $usg . PHP_EOL);
 
-                    // if ($key == 0) {
-                    //     break;
-                    // }
+                    if ($key == 4) {
+                        break;
+                    }
 
                     // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4);
-                    
+
                 }
             }
         }
