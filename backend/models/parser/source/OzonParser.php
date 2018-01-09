@@ -44,15 +44,15 @@ class OzonParser extends Parser implements ParserSourceInterface
         if ($response = $this->sessionClient(self::$model->domain . '/context/partner_xml/')) {
             if (($nodes = $this->getNodes($response, '//a[@download]')) && $nodes->length) {
 
-                // $dataNodes = [];
-                // foreach ($nodes as $nod) {
-                //     $dataNodes[] = $nod;
-                //     unset($nod);
-                // }
-                // unset($nodes);
-                
-                foreach ($nodes as $key => $node) {
-                // foreach ($dataNodes as $key => &$node) {
+                $dataNodes = [];
+                foreach ($nodes as $nod) {
+                    $dataNodes[] = $nod;
+                    unset($nod);
+                }
+                unset($nodes);
+
+                // foreach ($nodes as $key => $node) {
+                foreach ($dataNodes as $key => &$node) {
                     $content = file_get_contents('http:' . $node->getAttribute('download'));
                     $lines = explode("\n", $content); // Double Qoute
 
@@ -125,7 +125,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    unset($key, $lines, $dataL1, $dataL2, $dataL3, $usg);
+                    unset($key, $node, $lines, $dataL1, $dataL2, $dataL3, $usg);
                 }
             }
         }
