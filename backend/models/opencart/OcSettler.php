@@ -182,7 +182,8 @@ class OcSettler
         print_r($offset . ' -> ');
 
         // foreach ($productsOc->each(2, $db) as $key => $productOc) {
-        foreach ($productsOc->each(100, $db) as $key => $productOc) {
+        // foreach ($productsOc->each(100, $db) as $key => $productOc) {
+        foreach (($products = $productsOc->each(100, $db)) as $key => $productOc) {
             try {
                 // print_r($productOc);
                 $data['total']++;
@@ -198,10 +199,18 @@ class OcSettler
                     print_r(($offset + $key) . ' -> ');
                 }
 
+                // unset($productOc);
+
             } catch (\Throwable $e) {
                 print_r('error on key ' . ($offset + $key) . ' -> ');
             }
+
+
         }
+
+        // $usage = memory_get_peak_usage(true);
+        // print_r('Peak: ' . $usage . PHP_EOL);
+        // print_r('Peak: ' . round($usage / 1024 / 1024, 2) . ' MB' . PHP_EOL);
 
         // print_r($data['delete']);
 
