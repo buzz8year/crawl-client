@@ -105,7 +105,6 @@ class OzonParser extends Parser implements ParserSourceInterface
                                 'title'      => $title,
                                 'nest_level' => 4,
                             ];
-                            $dataL4[] = $keyLine;
                         }
 
                         unset($nest, $keyLine, $expLine, $title);
@@ -113,8 +112,8 @@ class OzonParser extends Parser implements ParserSourceInterface
                     }
 
 
-                    $usg = memory_get_peak_usage(true);
-                    print_r('Peak: ' . $usg . PHP_EOL);
+                    // $usg = memory_get_peak_usage(true);
+                    // print_r('Peak: ' . $usg . PHP_EOL);
 
                     // if ($key == 3) {
                     //     break;
