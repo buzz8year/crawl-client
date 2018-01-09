@@ -53,7 +53,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     $dataL3 = [];
                     $dataL4 = [];
 
-                    foreach ($lines as $keyLine => $line) {
+                    foreach ($lines as $keyLine => &$line) {
                         $expLine = explode('(', rtrim(trim($line), ')'));
                         $title = trim(json_decode(str_replace('\ufeff', '', json_encode($expLine[0])))); // With BOM markups deleted
 
@@ -119,7 +119,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                         //     $dataL4[] = $keyLine;
                         // }
 
-                        // unset($nest, $keyLine, $line, $expLine, $title);
+                        unset($nest, $keyLine, $line, $expLine, $title);
 
                     }
 
