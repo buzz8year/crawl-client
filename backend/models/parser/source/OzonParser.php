@@ -48,8 +48,6 @@ class OzonParser extends Parser implements ParserSourceInterface
                     $content = file_get_contents('http:' . $node->getAttribute('download'));
                     $lines = explode("\n", $content);
 
-                    unset($content);
-
                     $dataL1 = [];
                     $dataL2 = [];
                     $dataL3 = [];
@@ -121,7 +119,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                         }
                     }
 
-                    unset($lines, $dataL1, $dataL2, $dataL3, $dataL4);
+                    unset($content, $lines, $dataL1, $dataL2, $dataL3, $dataL4);
 
                     if ($key == 4) {
                         break;
