@@ -58,7 +58,7 @@ class OzonParser extends Parser implements ParserSourceInterface
 
                     unset($node, $content);
 
-                    $dataL1 = $dataL2 = $dataL3 = $dataL4 = [];
+                    $dataL1 = $dataL2 = $dataL3 = [];
 
                     foreach ($lines as $keyLine => &$line) {
                         // Define NEST by counting blank spaces
@@ -98,14 +98,14 @@ class OzonParser extends Parser implements ParserSourceInterface
                             $dataL2[] = $keyLine;
                         }
 
-                        // if ($nest == 3) {
-                        //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
-                        //         'href'       => $expLine[1],
-                        //         'title'      => $title,
-                        //         'nest_level' => 3,
-                        //     ];
-                        //     $dataL3[] = $keyLine;
-                        // }
+                        if ($nest == 3) {
+                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][$keyLine] = [
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 3,
+                            ];
+                            $dataL3[] = $keyLine;
+                        }
 
                         // if ($nest == 4) {
                         //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
@@ -125,7 +125,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    unset($key, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
+                    unset($key, $lines, $dataL1, $dataL2, $dataL3, $usg);
                 }
             }
         }
