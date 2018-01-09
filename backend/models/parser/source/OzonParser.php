@@ -71,17 +71,17 @@ class OzonParser extends Parser implements ParserSourceInterface
                         // Define NEST by counting blank spaces
                         $nest = (strlen($line) - strlen(ltrim($line)) - 2) / 2;
 
-                        // if ($nest == 1) {
-                        //     $data[$key]['children'][$keyLine] = [
-                        //         'csid'       => '',
-                        //         'dump'       => '',
-                        //         'alias'      => '',
-                        //         'href'       => $expLine[1],
-                        //         'title'      => $title,
-                        //         'nest_level' => 1,
-                        //     ];
-                        //     $dataL1[] = $keyLine;
-                        // }
+                        if ($nest == 1) {
+                            $data[$key]['children'][$keyLine] = [
+                                'csid'       => '',
+                                'dump'       => '',
+                                'alias'      => '',
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 1,
+                            ];
+                            $dataL1[] = $keyLine;
+                        }
 
                         // if ($nest == 2) {
                         //     $data[$key]['children'][end($dataL1)]['children'][$keyLine] = [
@@ -118,6 +118,9 @@ class OzonParser extends Parser implements ParserSourceInterface
                         //     ];
                         //     $dataL4[] = $keyLine;
                         // }
+
+                        // unset($nest, $keyLine, $line, $expLine, $title);
+
                     }
 
 
@@ -128,7 +131,7 @@ class OzonParser extends Parser implements ParserSourceInterface
                     //     break;
                     // }
 
-                    // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4);
+                    // unset($key, $node, $content, $lines, $dataL1, $dataL2, $dataL3, $dataL4, $usg);
 
                 }
             }
