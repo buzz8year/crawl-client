@@ -17,7 +17,7 @@ class OneTwoParser extends Parser implements ParserSourceInterface
     const QUERY_KEYWORD  = '?q=';
 
     const XPATH_WARNING = ''; // At Catalog/Search Page
-    const XPATH_CATALOG = '//*[@data-product-id]'; // At Catalog/Search Page
+    const XPATH_CATALOG = '//*[@data-product-id and contains(@class, \'product-item\')]'; // At Catalog/Search Page
 
     const XPATH_SUPER = '//div[@class=\'pc-main\']'; // At Product Page. JS Script with JSON Whole Data Object
     const XPATH_ATTRIBUTE   = './/div[@id=\'tab-char\']'; // At Product Page
@@ -196,6 +196,25 @@ class OneTwoParser extends Parser implements ParserSourceInterface
         return $data;
     }
 
+
+
+
+    /**
+     * @return
+     */
+    public static function xpathSale(string $xpath)
+    {
+        $extend = ' and (.//*[contains(@class, \'old-price\')])';
+        $explode  = rtrim($xpath, ']');
+        $xpath = $explode . $extend . ']';
+
+        return $xpath;
+    }
+
+
+
+
+
     /**
      * Extracting data from the product item's element of a category/search page
      * @return array
@@ -213,13 +232,13 @@ class OneTwoParser extends Parser implements ParserSourceInterface
                         $title = trim($element->textContent);
                     }
                     if ($element->getAttribute('class') == 'price') {
-                        if ($element->getElementsByTagName('span')->length) {
-                            $price = preg_replace('/[^0-9]/', '', $element->getElementsByTagName('span')[0]->textContent);
+                        if ($element->getElementsByTagName('strong')->length) {
+                            $price = preg_replace('/[^0-9]/', '', $element->getElementsByTagName('strong')[0]->textContent);
                         }
                     }
                 }
             }
-            if ($href && $price) {
+            if (isset($href, $price)) {
                 $data[] = [
                     'name'       => $title,
                     'price'      => $price,
