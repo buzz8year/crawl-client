@@ -184,10 +184,12 @@ class RivegaucheParser extends Parser implements ParserSourceInterface
                     $apiHref  = self::$model->domain . self::QUERY_PRODUCT_API . trim($product['code']);
                     // $linkExplode = explode ('/', $product['url']);
                     // $id    = end($linkExplode);
-                    $price = $product[(self::$model->saleFlag ? 'discountPrice' : 'price')]['value'];
+                    if ($product['price']) {
+                        $price = $product[(self::$model->saleFlag ? 'discountPrice' : 'price')]['value'];
+                    }
                     $name  = iconv ( 'UTF-8' , 'ISO-8859-1' , trim ( $product['name'] ) );
                     // $href  = $link;
-                    if ($href) {
+                    if ($href && isset($price)) {
                         $data[] = [
                             // 'id'         => $id,
                             'name'       => $name,
