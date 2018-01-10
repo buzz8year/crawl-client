@@ -132,7 +132,8 @@ class ParseController extends \yii\console\Controller
             $rawCategories = CategorySource::find()->where(['source_id' => $this->src])->orderBy('nest_level')->asArray()->all();
             $sourceCategories = ParserProvisioner::buildTree($rawCategories);
 
-            Yii::$app->cache->set('categoryTreeId=' . $this->src, $sourceCategories);
+            $cache = new \yii\caching\DbCache();
+            $cache->set('categoryTreeId=' . $this->src, $sourceCategories);
 
             Yii::info('CACHED' . PHP_EOL, 'parse-console');
             $this->stdout('CACHED' . PHP_EOL);
