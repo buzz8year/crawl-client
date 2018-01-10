@@ -96,16 +96,13 @@ class OzonParser extends Parser implements ParserSourceInterface
                             $dataL3[] = $keyLine;
                         }
 
-                        // if ($nest == 4) {
-                        //     $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
-                        //         'csid'       => '',
-                        //         'dump'       => '',
-                        //         'alias'      => '',
-                        //         'href'       => $expLine[1],
-                        //         'title'      => $title,
-                        //         'nest_level' => 4,
-                        //     ];
-                        // }
+                        if ($nest == 4) {
+                            $data[$key]['children'][end($dataL1)]['children'][end($dataL2)]['children'][end($dataL3)]['children'][$keyLine] = [
+                                'href'       => $expLine[1],
+                                'title'      => $title,
+                                'nest_level' => 4,
+                            ];
+                        }
 
                         unset($nest, $keyLine, $expLine, $title);
                     }
