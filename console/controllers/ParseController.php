@@ -119,6 +119,34 @@ class ParseController extends \yii\console\Controller
 
 
 
+    /**
+     * TODO: Remove
+     * @return void
+     */
+    public function actionTree()
+    {
+        if ($this->src && Source::findOne($this->src)->status === 1) {
+            $super  = new Parser();
+            $model  = $super->createModel($this->src);
+            $parser = new $model->class();
+            $categories = $parser->parseCategories();
+            print_r($categories);
+        }
+    }
+
+
+
+
+    /**
+     * TODO: Remove
+     * @return void
+     */
+    public function actionInfo()
+    {
+        print_r(phpinfo());
+    }
+
+
 
     /**
      * @return void
@@ -164,14 +192,6 @@ class ParseController extends \yii\console\Controller
 
 
 
-    /**
-     * TODO: Remove
-     * @return void
-     */
-    public function actionInfo()
-    {
-        print_r(phpinfo());
-    }
 
 
     /**
