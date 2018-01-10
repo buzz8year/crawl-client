@@ -6,6 +6,7 @@ use backend\models\parser\Parser;
 use backend\models\parser\ParserProvisioner;
 use backend\models\parser\ParserSettler;
 use backend\models\opencart\OcSettler;
+use backend\models\CategorySource;
 use backend\models\Product;
 use backend\models\Source;
 use Yii;
@@ -119,9 +120,30 @@ class ParseController extends \yii\console\Controller
     }
 
 
+    /**
+     * @return void
+     */
+    public function actionCacheTree()
+    {
+        Yii::info('CACHE: Category Tree' . PHP_EOL, 'parse-console');
+        $this->stdout('CACHE: Category Tree' . PHP_EOL);
+
+        if ($this->src) {
+            $rawCategories = CategorySource::find()->where(['source_id' => $this->src])->orderBy('nest_level')->asArray()->all();
+            $sourceCategories = ParserProvisioner::buildTree($rawCategories);
+
+            Yii::$app->cache->set('categoryTreeId=' . $this->src, $sourceCategories);
+
+            Yii::info('CACHED' . PHP_EOL, 'parse-console');
+            $this->stdout('CACHED' . PHP_EOL);
+
+        } else {
+            Yii::info('No Source ID specified' . PHP_EOL, 'parse-console');
+            $this->stdout('No Source ID specified' . PHP_EOL);
+        }
+    }
 
     /**
-     * TODO: Remove
      * @return void
      */
     public function actionTree()
