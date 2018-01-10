@@ -240,11 +240,13 @@ class OzonParser extends Parser implements ParserSourceInterface
     public function getProducts($nodes)
     {
         $data = [];
-        $images = [];
-        $attributes = [];
-        $descriptions = [];
 
         foreach ($nodes->shop->offers->offer as $node) {
+
+            $images = [];
+            $attributes = [];
+            $descriptions = [];
+
             $name = (string)$node->name;
 
             if (isset($node->vendor)) {
@@ -291,6 +293,8 @@ class OzonParser extends Parser implements ParserSourceInterface
                     'images' => $images,
                 ];
             // }
+
+            unset($images, $attributes, $descriptions, $name);
         }
 
         return $data;
@@ -302,12 +306,12 @@ class OzonParser extends Parser implements ParserSourceInterface
      */
     public function getSuperData(\DOMNodeList $nodes)
     {
-        $script     = $nodes[0]->getElementsByTagName('script')[0]->nodeValue;
-        $explodeOne = explode('({', $script)[1];
-        $explodeTwo = explode('})', $explodeOne)[0];
-        $data       = json_decode('{' . $explodeTwo . '}');
+        // $script     = $nodes[0]->getElementsByTagName('script')[0]->nodeValue;
+        // $explodeOne = explode('({', $script)[1];
+        // $explodeTwo = explode('})', $explodeOne)[0];
+        // $data       = json_decode('{' . $explodeTwo . '}');
 
-        return $data;
+        // return $data;
     }
 
     /**
@@ -316,23 +320,23 @@ class OzonParser extends Parser implements ParserSourceInterface
      */
     public function getDescriptionData($object)
     {
-        $data = [];
-        if (isset($object->Description)) {
-            foreach ($object->Description->Blocks as $descScope) {
-                $data[] = [
-                    'title' => $descScope->Title,
-                    'text'  => $descScope->Text,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => '',
-                    'text'  => $node->textContent,
-                ];
-            }
-        }
-        return $data;
+        // $data = [];
+        // if (isset($object->Description)) {
+        //     foreach ($object->Description->Blocks as $descScope) {
+        //         $data[] = [
+        //             'title' => $descScope->Title,
+        //             'text'  => $descScope->Text,
+        //         ];
+        //     }
+        // } else {
+        //     foreach ($object as $node) {
+        //         $data[] = [
+        //             'title' => '',
+        //             'text'  => $node->textContent,
+        //         ];
+        //     }
+        // }
+        // return $data;
     }
 
     /**
@@ -341,23 +345,23 @@ class OzonParser extends Parser implements ParserSourceInterface
      */
     public function getAttributeData($object)
     {
-        $data = [];
-        if (isset($object->Capabilities)) {
-            foreach ($object->Capabilities->Capabilities as $attrScope) {
-                $data[] = [
-                    'title' => $attrScope->Name,
-                    'value' => is_string($attrScope->Value) ? $attrScope->Value : $attrScope->Value[0]->Text,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'title' => trim($node->getElementsByTagName('*')[0]->textContent),
-                    'value' => trim($node->getElementsByTagName('*')[1]->textContent),
-                ];
-            }
-        }
-        return $data;
+        // $data = [];
+        // if (isset($object->Capabilities)) {
+        //     foreach ($object->Capabilities->Capabilities as $attrScope) {
+        //         $data[] = [
+        //             'title' => $attrScope->Name,
+        //             'value' => is_string($attrScope->Value) ? $attrScope->Value : $attrScope->Value[0]->Text,
+        //         ];
+        //     }
+        // } else {
+        //     foreach ($object as $node) {
+        //         $data[] = [
+        //             'title' => trim($node->getElementsByTagName('*')[0]->textContent),
+        //             'value' => trim($node->getElementsByTagName('*')[1]->textContent),
+        //         ];
+        //     }
+        // }
+        // return $data;
     }
 
     /**
@@ -366,23 +370,23 @@ class OzonParser extends Parser implements ParserSourceInterface
      */
     public function getImageData($object)
     {
-        $data = [];
-        if (isset($object->Gallery)) {
-            foreach ($object->Gallery->Groups[0]->Elements as $imageScope) {
-                $data[] = [
-                    'fullsize' => $imageScope->Original,
-                    'thumb'    => $imageScope->Preview,
-                ];
-            }
-        } else {
-            foreach ($object as $node) {
-                $data[] = [
-                    'fullsize' => $node->getElementsByTagName('img')[0]->getAttribute('src'),
-                    'thumb'    => '',
-                ];
-            }
-        }
-        return $data;
+        // $data = [];
+        // if (isset($object->Gallery)) {
+        //     foreach ($object->Gallery->Groups[0]->Elements as $imageScope) {
+        //         $data[] = [
+        //             'fullsize' => $imageScope->Original,
+        //             'thumb'    => $imageScope->Preview,
+        //         ];
+        //     }
+        // } else {
+        //     foreach ($object as $node) {
+        //         $data[] = [
+        //             'fullsize' => $node->getElementsByTagName('img')[0]->getAttribute('src'),
+        //             'thumb'    => '',
+        //         ];
+        //     }
+        // }
+        // return $data;
     }
 
     public function pageQuery(int $page, string $url)

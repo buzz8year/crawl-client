@@ -242,7 +242,7 @@ class ParserSettler implements ParserSettlingInterface
     {
         $dataDetails = [];
 
-        foreach ($products as $key => $product) {
+        foreach ($products as $key => &$product) {
 
             if (isset($product['href'])) {
 
