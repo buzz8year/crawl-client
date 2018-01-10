@@ -4,6 +4,7 @@ namespace console\controllers;
 
 use backend\models\parser\Parser;
 use backend\models\parser\ParserProvisioner;
+use backend\models\parser\ParserSettler;
 use backend\models\opencart\OcSettler;
 use backend\models\Product;
 use backend\models\Source;
@@ -125,12 +126,45 @@ class ParseController extends \yii\console\Controller
      */
     public function actionTree()
     {
-        if ($this->src && Source::findOne($this->src)->status === 1) {
-            $super  = new Parser();
-            $model  = $super->createModel($this->src);
-            $parser = new $model->class();
-            $categories = $parser->parseCategories();
-            print_r($categories);
+        if ($this->src) {
+            if (Source::findOne($this->src)->status === 1) {
+                $super  = new Parser();
+                $model  = $super->createModel($this->src);
+                $parser = new $model->class();
+
+                Yii::info('Source category tree parsing is started:' . PHP_EOL, 'parse-console');
+                $this->stdout('Source category tree parsing is started:' . PHP_EOL);
+
+                if ($categories = $parser->parseCategories()) {
+                    Yii::info('Source category tree is parsed. Writing to DB is started:' . PHP_EOL, 'parse-console');
+                    $this->stdout('Source category tree is parsed. Writing to DB is started:' . PHP_EOL);
+
+                    $settler = new ParserSettler($this->src);
+
+
+
+                    if ($saveCategories = $settler->saveCategories(json_decode(json_encode($categories)))) {
+                        Yii::info(
+                                'Category tree has been parsed and saved. Check it here: ' . PHP_EOL .
+                                'http://77.222.63.105/backend/web/index.php?r=parser%2Ftree&id=' . $this->src . PHP_EOL,
+                            'parse-console'
+                        );
+
+                        $this->stdout(
+                            'Category tree has been parsed and saved. Check it here: ' . PHP_EOL . 
+                            'http://77.222.63.105/backend/web/index.php?r=parser%2Ftree&id=' . $this->src . PHP_EOL
+                        );
+                    }
+                }
+
+            } else {
+                Yii::info('Source status is OFF' . PHP_EOL, 'parse-console');
+                $this->stdout('Source status is OFF' . PHP_EOL);
+            }
+
+        } else {
+            Yii::info('Source ID must be defined as follows: ' . PHP_EOL . PHP_EOL . 'php {path}/yii parse/tree --src={int | Source ID}' . PHP_EOL, 'parse-console');
+            $this->stdout('Source ID must be defined as follows: ' . PHP_EOL . PHP_EOL . 'php {path}/yii parse/tree --src={int | Source ID}' . PHP_EOL);            
         }
     }
 

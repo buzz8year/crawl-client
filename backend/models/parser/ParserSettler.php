@@ -75,12 +75,13 @@ class ParserSettler implements ParserSettlingInterface
      */
     public function saveCategories($parsedCategories, int $syncCategories = 0)
     {
-        if (($session = Yii::$app->session) && $session->isActive) {
+        if (isset(Yii::$app->session) && ($session = Yii::$app->session) && $session->isActive) {
             $session->close();
         }
 
         foreach ($parsedCategories as $category) {
             $nestCategory = $this->nestCategory($category);
+            print_r('PROCESSING: ' . $category->title . '. DONE' . PHP_EOL);
         }
 
         // if ($syncCategories) {
@@ -97,7 +98,7 @@ class ParserSettler implements ParserSettlingInterface
      */
     public function nestCategory($category, int $parentId = null)
     {
-        if (($session = Yii::$app->session) && $session->isActive) {
+        if (isset(Yii::$app->session) && ($session = Yii::$app->session) && $session->isActive) {
             $session->close();
         }
 
@@ -151,9 +152,9 @@ class ParserSettler implements ParserSettlingInterface
             $newCategorySource                        = new CategorySource();
             $newCategorySource->category_id           = $categoryId;
             $newCategorySource->source_url            = $category->href;
-            $newCategorySource->source_category_alias = $category->alias;
-            $newCategorySource->source_category_id    = $category->csid;
-            $newCategorySource->source_url_dump       = $category->dump;
+            $newCategorySource->source_category_alias = isset($category->alias) ? $category->alias : '';
+            $newCategorySource->source_category_id    = isset($category->csid) ? $category->csid : null;
+            $newCategorySource->source_url_dump       = isset($category->dump) ? $category->dump : '';
             $newCategorySource->nest_level            = $category->nest_level;
             $newCategorySource->self_parent_id        = $parentId;
             $newCategorySource->source_id             = self::$sourceId;

@@ -203,10 +203,8 @@ class ParserController extends Controller
 
             $settler = new ParserSettler($id);
 
-
             if (Yii::$app->request->post('parseTree')) {
-                $parsedCategories = $parser->parseCategories();
-                if ($parsedCategories) {
+                if ($parsedCategories = $parser->parseCategories()) {
                     $missedCategories = $settler->nestMisses($parsedCategories);
                 } else {
                     $error = true;
@@ -218,8 +216,6 @@ class ParserController extends Controller
                 Yii::$app->cache->delete('categoryTreeId=' . $model->id);
                 return Yii::$app->getResponse()->redirect(['parser/tree', 'id' => $id]);
             }
-
-
 
         }
 
