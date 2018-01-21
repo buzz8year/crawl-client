@@ -87,6 +87,7 @@ class Parser implements ParserInterface
 
         // print_r(self::$proxies);
         $options = [
+            CURLOPT_ENCODING       => '',
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => self::$model->class::CURL_FOLLOW,

@@ -132,6 +132,8 @@ class ParserSettler implements ParserSettlingInterface
                 $categoryExist->tags = $implodeTags;
                 $categoryExist->save();
             }
+            // print_r('Exist ' . $categoryExist->title);
+
         } else {
             $newCategory        = new Category();
             $newCategory->tags  = $implodeTags;
@@ -140,13 +142,19 @@ class ParserSettler implements ParserSettlingInterface
         }
 
         $categoryId          = $categoryExist->id ?? $newCategory->id;
-        $categorySourceExist = CategorySource::find()
-            ->where([
-                'source_id'   => self::$sourceId,
-                'source_url'  => $category->href,
-                // 'category_id' => $categoryId,
-            ])
-            ->one();
+
+        if ($category->href) {
+            $categorySourceExist = CategorySource::find()
+                ->where([
+                    'source_id'   => self::$sourceId,
+                    'source_url'  => $category->href,
+                    // 'category_id' => $categoryId,
+                ])
+                ->one();
+                
+        } else {
+            $categorySourceExist = false;
+        }
 
         if (!$categorySourceExist) {
             $newCategorySource                        = new CategorySource();
@@ -160,6 +168,10 @@ class ParserSettler implements ParserSettlingInterface
             $newCategorySource->source_id             = self::$sourceId;
             $newCategorySource->save();
         }
+
+        // else {
+        //     print_r('Exist ' . $categorySourceExist->id);
+        // }
 
         $categorySourceId = $categorySourceExist->id ?? $newCategorySource->id;
 
@@ -185,45 +197,49 @@ class ParserSettler implements ParserSettlingInterface
 
         foreach ($categories as $category) {
 
-            $morphier = new Morph('ru');
-            $lemmas = $morphier->getPhraseLemmas($category['title']);
+            if (isset($category['title'])) {
 
-            $tags = [];
-            foreach ($lemmas as $lemma) {
-                $tagExist = CategoryTags::find()->where(['tag' => $lemma])->one();
-                if ($tagExist) {
-                    $tags[] = $tagExist->id;
+                $morphier = new Morph('ru');
+                // print_r($category['title']);
+                $lemmas = $morphier->getPhraseLemmas($category['title']);
+
+                $tags = [];
+                foreach ($lemmas as $lemma) {
+                    $tagExist = CategoryTags::find()->where(['tag' => $lemma])->one();
+                    if ($tagExist) {
+                        $tags[] = $tagExist->id;
+                    }
                 }
-            }
 
-            if ($tags) {
-                natsort($tags);
-                $implodeTags = implode('+', $tags);
-                $categoryExist = Category::find()->where(['tags' => $implodeTags])->one();
-            }
+                if ($tags) {
+                    natsort($tags);
+                    $implodeTags = implode('+', $tags);
+                    $categoryExist = Category::find()->where(['tags' => $implodeTags])->one();
+                }
 
 
-            if (isset($categoryExist) && $categoryExist) {
-                $categorySourceExist = CategorySource::find()
-                    ->where([
-                        'source_id'   => self::$sourceId,
-                        'source_url'  => $category['href'],
-                        'category_id' => $categoryExist->id,
-                    ])
-                    ->one();
+                if (isset($categoryExist) && $categoryExist) {
+                    $categorySourceExist = CategorySource::find()
+                        ->where([
+                            'source_id'   => self::$sourceId,
+                            'source_url'  => $category['href'],
+                            'category_id' => $categoryExist->id,
+                        ])
+                        ->one();
 
-                if (!$categorySourceExist) {
-                    self::$missedCategories['source'][] = $category['title'];
+                    if (!$categorySourceExist) {
+                        self::$missedCategories['source'][] = $category['title'];
+                    } else {
+
+                    }
                 } else {
-
+                    self::$missedCategories['global'][] = $category['title'];
+                    self::$missedCategories['source'][] = $category['title'];
                 }
-            } else {
-                self::$missedCategories['global'][] = $category['title'];
-                self::$missedCategories['source'][] = $category['title'];
-            }
 
-            if (isset($category['children']) && count($category['children'])) {
-                $this->nestMisses($category['children']);
+                if (isset($category['children']) && count($category['children'])) {
+                    $this->nestMisses($category['children']);
+                }
             }
 
 
