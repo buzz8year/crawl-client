@@ -31,4 +31,5 @@ backend/                 default yii2 advanced-template files
 frontend/                default yii2 files
 vendor/                  default yii2 files
 environments/            default yii2 files
+...
 ```
