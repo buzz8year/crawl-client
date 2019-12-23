@@ -19,7 +19,7 @@ console/                 default yii2 files
 backend/                 default yii2 advanced-template files
     controllers/         controller classes for web-interface
     models/              contains specific model (or helper) classes
-            captcha/ 
+            captcha/     helper class to process captchas
             morph/       helper class to work with phpmorphy
             parser/      main crawling-logic classes & oop-interfaces  
                 source/  directory for new crawl-source interface implemetations (only 4 mandatory methods)
