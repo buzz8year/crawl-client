@@ -1,5 +1,15 @@
-DIRECTORY STRUCTURE
--------------------
+PHP Crawling Client
+---------
+- Morphology
+- Cron friendly (linux)
+- Console/web interfaces
+- Highload (memory-leaking wall)
+- VM/screen friendly
+- OOP
+
+
+Structure
+---------
 
 ```
 common/                  defalt yii2 files  
