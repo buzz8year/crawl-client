@@ -22,14 +22,14 @@ backend/                 default yii2 advanced-template files
             captcha/ 
             morph/       helper class to work with phpmorphy
             parser/      main crawling-logic classes & oop-interfaces  
-                source/  directory for any new crawl-source interface implemetations (4 methods required)
+                source/  directory for new crawl-source interface implemetations (only 4 mandatory methods)
                 ...
             search/      search helpers
             sync/        helper class to update aggregator (marketplace) db 
             synonym/     helper class to work with synonymizers
             ...            
-frontend/                default yii2 files
-vendor/                  default yii2 files
+frontend/                default yii2 files (and logic for your aggregator/marketplace)
+vendor/                  dependencies
 environments/            default yii2 files
 ...
 ```
