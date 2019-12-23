@@ -12,11 +12,11 @@ Structure
 ---------
 
 ```
-common/                  defalt yii2 files  
-console/                 defalt yii2 files  
+common/                  default yii2 files  
+console/                 default yii2 files  
     controllers/         console controller class (declaring and implementing methods to be used within console/terminal)
     
-backend/                 defalt yii2 advanced-template files
+backend/                 default yii2 advanced-template files
     controllers/         controller classes for web-interface
     models/              contains specific model (or helper) classes
             captcha/ 
@@ -27,7 +27,7 @@ backend/                 defalt yii2 advanced-template files
             sync/        helper class to update aggregator (marketplace) db 
             synonym/     helper class to work with synonymizers
             
-frontend/                defalt yii2 files
-vendor/                  defalt yii2 files
-environments/            defalt yii2 files
+frontend/                default yii2 files
+vendor/                  default yii2 files
+environments/            default yii2 files
 ```
