@@ -2,36 +2,22 @@ DIRECTORY STRUCTURE
 -------------------
 
 ```
-common
-    config/              contains shared configurations
-    mail/                contains view files for e-mails
-    models/              contains model classes used in both backend and frontend
-    tests/               contains tests for common classes    
-console
-    config/              contains console configurations
-    controllers/         contains console controllers (commands)
-    migrations/          contains database migrations
-    models/              contains console-specific model classes
-    runtime/             contains files generated during runtime
-backend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains backend configurations
-    controllers/         contains Web controller classes
-    models/              contains backend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for backend application    
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-frontend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains frontend configurations
-    controllers/         contains Web controller classes
-    models/              contains frontend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for frontend application
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-    widgets/             contains frontend widgets
-vendor/                  contains dependent 3rd-party packages
-environments/            contains environment-based overrides
+common/                  defalt yii2 files  
+console/                 defalt yii2 files  
+    controllers/         console controller class (declaring and implementing methods to be used within console/terminal)
+    
+backend/                 defalt yii2 advanced-template files
+    controllers/         controller classes for web-interface
+    models/              contains specific model (or helper) classes
+            captcha/ 
+            morph/       helper class to work with phpmorphy
+            parser/      main crawling-logic classes & oop-interfaces  
+                source/  directory for any new crawl-source interface implemetations (requires max 4 method impl.)
+            search/      search helpers
+            sync/        helper class to update aggregator (marketplace) db 
+            synonym/     helper class to work with synonymizers
+            
+frontend/                defalt yii2 files
+vendor/                  defalt yii2 files
+environments/            defalt yii2 files
 ```
