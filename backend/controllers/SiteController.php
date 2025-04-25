@@ -1,11 +1,13 @@
 <?php
+
 namespace backend\controllers;
 
+use common\models\LoginForm;
 use Yii;
-use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use common\models\LoginForm;
+use yii\web\Controller;
+use yii\web\Response;
 
 /**
  * Site controller
@@ -13,42 +15,42 @@ use common\models\LoginForm;
 class SiteController extends Controller
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    // public function behaviors()
-    // {
-    //     return [
-    //         'access' => [
-    //             'class' => AccessControl::className(),
-    //             'rules' => [
-    //                 [
-    //                     'actions' => ['login', 'error'],
-    //                     'allow' => true,
-    //                 ],
-    //                 [
-    //                     'actions' => ['logout', 'index'],
-    //                     'allow' => true,
-    //                     'roles' => ['@'],
-    //                 ],
-    //             ],
-    //         ],
-    //         'verbs' => [
-    //             'class' => VerbFilter::className(),
-    //             'actions' => [
-    //                 'logout' => ['post'],
-    //             ],
-    //         ],
-    //     ];
-    // }
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'actions' => ['login', 'error'],
+                        'allow' => true,
+                    ],
+                    [
+                        'actions' => ['logout', 'index'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'logout' => ['post'],
+                ],
+            ],
+        ];
+    }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function actions()
     {
         return [
             'error' => [
-                'class' => 'yii\web\ErrorAction',
+                'class' => \yii\web\ErrorAction::class,
             ],
         ];
     }
@@ -60,14 +62,13 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        // return $this->render('index');
-        return Yii::$app->getResponse()->redirect(['parser/index']);
+        return $this->render('index');
     }
 
     /**
      * Login action.
      *
-     * @return string
+     * @return string|Response
      */
     public function actionLogin()
     {
@@ -75,20 +76,24 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
+        $this->layout = 'blank';
+
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
         }
+
+        $model->password = '';
+
+        return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
     /**
      * Logout action.
      *
-     * @return string
+     * @return Response
      */
     public function actionLogout()
     {

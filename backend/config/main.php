@@ -13,20 +13,6 @@ return [
     'bootstrap' => ['log'],
     'modules' => [],
     'components' => [
-        // 'cache' => [
-        //     'class' => 'yii\caching\MemCache',
-        //     'useMemcached' => true,
-        //     'servers' => [
-        //         [
-        //             'host' => 'loaclhost',
-        //             'port' => 11211,
-        //             'weight' => 60,
-        //         ],
-        //     ],
-        // ],
-        'cache' => [ 
-            'class' => 'yii\caching\DbCache',
-        ],
         'request' => [
             'csrfParam' => '_csrf-backend',
         ],
@@ -43,16 +29,14 @@ return [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
                 [
-                    'class' => 'yii\log\FileTarget',
+                    'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
             ],
         ],
         'errorHandler' => [
-            'errorAction' => YII_DEBUG ? null : 'site/error',
-            // 'errorAction' => 'site/error',
+            'errorAction' => 'site/error',
         ],
-
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,
