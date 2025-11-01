@@ -4,12 +4,11 @@ namespace crawler\controllers;
 
 use crawler\models\category\CategorySourceSearch;
 use crawler\models\category\CategorySource;
-use crawler\models\opencart\OcSettler;
+use crawler\models\sync\OcSettler;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use Yii;
-
 
 class CategorySourceController extends Controller
 {
@@ -25,7 +24,6 @@ class CategorySourceController extends Controller
             ],
         ];
     }
-
 
     public function actionIndex()
     {

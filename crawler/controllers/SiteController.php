@@ -61,9 +61,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        Yii::error('Index action called', '123');
         return $this->render('index');
-        // return Yii::$app->getResponse()->redirect(['parser/index']);
     }
 
     /**
@@ -76,13 +74,13 @@ class SiteController extends Controller
         }
 
         $model = new AdminLoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        
+        if ($model->load(Yii::$app->request->post()) && $model->login()) 
             return $this->goBack();
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
-        }
+
+        else return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -91,7 +89,6 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 }

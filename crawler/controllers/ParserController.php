@@ -2,11 +2,11 @@
 
 namespace crawler\controllers;
 
-use crawler\models\category\CategorySource;
-use crawler\models\keyword\KeywordHandler;
+use crawler\models\keyword\Keyword;
 use crawler\models\parser\ParserFactory;
-use crawler\models\parser\ParserProvisioner;
 use crawler\models\parser\ParserSettler;
+use crawler\models\parser\ParserProvisioner;
+use crawler\models\category\CategorySource;
 use crawler\models\source\Source;
 use yii\web\Controller;
 use Yii;
@@ -17,16 +17,10 @@ use Yii;
  */
 class ParserController extends Controller
 {
-    /**
-     * @return mixed
-     */
     public function actionIndex()
     {
-        $provisioner = new ParserProvisioner();
-        $sources = $provisioner->listSources();
-
         return $this->render('index', [
-            'sources' => $sources,
+            'sources' => ParserProvisioner::listSources(),
         ]);
     }
 
@@ -39,87 +33,68 @@ class ParserController extends Controller
      */
     public function actionTrial(int $id, string $reg = '', string $cat = '', string $word = '', int $sale = 0)
     {
-        // NOTE: Close session
-        // if (($session = Yii::$app->session) && $session->isActive)
-        //     $session->close();
+        $factory = new ParserFactory();
+        $factory->setParser($id);
+        $factory->handleRequest($reg, $cat, $word, $sale);
 
-        $factory = new ParserFactory();        
-        $factory->createParser($id);
-        $factory->handleRequest($id, $reg, $cat, $word, $sale);
-
-        $model  = $factory->model;
-        $parser = $factory->parser;
-
-        // NOTE: Rendering needs
-        $provisioner = new ParserProvisioner();
-        $sourceRegions  = $provisioner->listSourceRegions($id);
-        $sourceKeywords = $provisioner->listSourceKeywords($id);
-
-        $cachedTree = Yii::$app->cache->get('categoryTreeId=' . $model->id);
-        $rawCategories = CategorySource::find()
-            ->where(['source_id' => $id])
-            ->orderBy('nest_level')
-            ->asArray()
-            ->all();
+        $cachedTree = Yii::$app->cache->get('categoryTreeId=' . $factory->model->id);
+        $rawCategories = CategorySource::findAllAsArrayById($id);
 
         // NOTE: Cached or build and then cache
         $sourceCategories = [];
         if ($cachedTree === false && $rawCategories) 
         {
             $sourceCategories = ParserProvisioner::buildTree($rawCategories);
-            Yii::$app->cache->set('categoryTreeId=' . $model->id, $sourceCategories);
+            Yii::$app->cache->set('categoryTreeId=' . $factory->model->id, $sourceCategories);
         } 
-        elseif ($cachedTree) $sourceCategories = $cachedTree;
+        elseif ($cachedTree) 
+            $sourceCategories = $cachedTree;
 
         // NOTE: Flush cache
         if (Yii::$app->request->post('flushTree')) 
         {
-            Yii::$app->cache->delete('categoryTreeId=' . $model->id);
+            Yii::$app->cache->delete('categoryTreeId=' . $factory->model->id);
             return Yii::$app->getResponse()->redirect(['parser/trial', 'id' => $id]);
         }
 
         // NOTE: Process keyword created on the fly
         if ($flyKeyword = Yii::$app->request->post('flyKeyword')) 
         {
-            $flyKeyword = KeywordHandler::findOrCreate($id, $flyKeyword, 1);
-
-            // NOTE: Catch fly-word and retry
+            $flyKeyword = Keyword::getOrCreate($id, $flyKeyword, true);
             return Yii::$app->getResponse()
                 ->redirect(['parser/trial', 'id' => $id, 'reg' => $reg, 'cat' => $cat, 'word' => $flyKeyword]);
         }
 
         // NOTE: Products
-        if (Yii::$app->request->post('parseGoods') && $factory->notVoid)
-            $parser->run();
+        if (Yii::$app->request->post('parseGoods') && ($cat || $word || $reg))
+            $factory->parser->run();
 
         // NOTE: Product details
         // NOTE: Details of all already present products
-        $detailsParsed = 0;
-
         if ($urlProducts = json_decode(Yii::$app->request->post('parseDetails') ?? '', true)) 
         {
-            $parser->parseDetails($urlProducts);
-            $detailsParsed = count($urlProducts);
+            $factory->model->details = $urlProducts;
+            $factory->parser->parseDetails();
         }
 
         if (Yii::$app->request->post('updateDetails')) 
         {
-            $presentProducts = Source::findOne($model->id)->productUrls;
-            $parser->parseDetails($presentProducts);
+            $presentProducts = Source::findOne($factory->model->id)->productUrls;
+            $factory->model->details = $presentProducts;
+            $factory->parser->parseDetails();
         }
 
         // NOTE: Synced products data
         $syncData = [];
-
         if (Yii::$app->request->post('syncGoods'))
-            $syncData = $parser->settler->syncProducts();
+            $syncData = $factory->parser->settler->syncProducts();
 
         return $this->render('trial', [
-            'model'            => $model,
-            'sourceRegions'    => $sourceRegions,
+            'model'            => $factory->model,
             'sourceCategories' => $sourceCategories,
-            'sourceKeywords'   => $sourceKeywords,
-            'detailsParsed'    => $detailsParsed,
+            'sourceKeywords'   => ParserProvisioner::listSourceKeywords($id),
+            'sourceRegions'    => ParserProvisioner::listSourceRegions($id),
+            'detailsParsed'    => empty($factory->model->details) ? 0 : count($factory->model->details),
             'syncData'         => $syncData,
         ]);
     }
@@ -135,27 +110,20 @@ class ParserController extends Controller
             $session->close();
 
         $factory = new ParserFactory();        
-        $factory->createParser($id);
+        $factory->setParser($id);
 
-        $model  = $factory->model;
+        $model = $factory->model;
         $parser = $factory->parser;
 
-        $sourceCategories = CategorySource::find()
-            ->where(['source_id' => $id])
-            ->orderBy('nest_level')
-            ->asArray()
-            ->all();
-
         $provisioner = new ParserProvisioner();
-        $categories  = $provisioner->buildTree($sourceCategories);
+        $categories = $provisioner->buildTree(CategorySource::findAllAsArrayById($id));
 
         usort($categories, function ($a, $b) {
-            return (count($b['children']) - count($a['children']));
+            return count($b['children']) - count($a['children']);
         });
 
         $parsedCategories = [];
         $missedCategories = [];
-
         $error = false;
 
         if (Yii::$app->request->post()) 
@@ -171,7 +139,7 @@ class ParserController extends Controller
 
             if ($postParsed = Yii::$app->request->post('saveChanges')) 
             {
-                $saveCategories = $settler->saveCategories(json_decode($postParsed));
+                $settler->saveCategories(json_decode($postParsed));
                 Yii::$app->cache->delete('categoryTreeId=' . $model->id);
                 return Yii::$app->getResponse()->redirect(['parser/tree', 'id' => $id]);
             }

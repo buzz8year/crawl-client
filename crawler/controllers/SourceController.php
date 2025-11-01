@@ -2,6 +2,7 @@
 
 namespace crawler\controllers;
 
+use yii\web\NotFoundHttpException;
 use crawler\models\header\Header;
 use crawler\models\header\HeaderSource;
 use crawler\models\header\HeaderValue;
@@ -13,10 +14,9 @@ use crawler\models\region\Region;
 use crawler\models\region\RegionSource;
 use crawler\models\source\SourceSearch;
 use crawler\models\source\Source;
-use Yii;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\NotFoundHttpException;
+use Yii;
 
 class SourceController extends Controller
 {
@@ -162,7 +162,7 @@ class SourceController extends Controller
             }
 
             $session = Yii::$app->session;
-            $session->setFlash('source-update', 'Данные успешно обновлены.');
+            $session->setFlash('source-update', 'Data successfully updated.');
             return $this->redirect(['source/update', 'id' => $id]);
         }
 
@@ -189,7 +189,7 @@ class SourceController extends Controller
         Yii::$app->cache->delete('categoryTreeId=' . $id);
 
         $session = Yii::$app->session;
-        $session->setFlash('categories-deleted', 'Все (' . $count . ') привязанные к ресурсу категории удалены.');
+        $session->setFlash('categories-deleted', sprintf('All (%d) categories linked to the resource have been deleted.', $count));
 
         return $this->redirect(['source/update', 'id' => $id]);
     }
@@ -208,13 +208,13 @@ class SourceController extends Controller
                 {
                     $this->deleteDetails($product);
                     $product->delete();
-                    $session->setFlash('products-deleted', 'Все несинхр. товары ресурса удалены.');
+                    $session->setFlash('products-deleted', 'All unsynchronized products of the resource have been deleted.');
                 }
             } 
             else {
                 $this->deleteDetails($product);
                 $product->delete();
-                $session->setFlash('products-deleted', 'Все (' . $count . ') товары ресурса удалены.');
+                $session->setFlash('products-deleted', sprintf('All (%d) products of the resource have been deleted.', $count));
             }
         }
 
@@ -239,20 +239,21 @@ class SourceController extends Controller
 
     public function actionHeaderCreate($hid, $sid)
     {
-        $headerSource                  = new HeaderSource();
-        $headerSource->header_id       = HeaderValue::findOne($hid)->header_id;
+        $headerSource = new HeaderSource();
+        $headerSource->header_id = HeaderValue::findOne($hid)->header_id;
         $headerSource->header_value_id = $hid;
-        $headerSource->source_id       = $sid;
+        $headerSource->source_id = $sid;
         $headerSource->save();
 
-        $text = Header::findOne($headerSource->header_id)->title . ': ' . HeaderValue::findOne($hid)->value;
+        $text = Header::findOne($headerSource->header_id)->title . ': ' 
+            . HeaderValue::findOne($hid)->value;
 
         return $headerSource->save() ? $text : 'error';
     }
 
     public function actionHeaderStatus($id)
     {
-        $headerSource         = HeaderSource::findOne($id);
+        $headerSource = HeaderSource::findOne($id);
         $headerSource->status = $headerSource->status ? 0 : 1;
         $headerSource->save();
 
@@ -281,8 +282,8 @@ class SourceController extends Controller
     {
         $proxy = Proxy::findOne($pid);
 
-        $proxySource            = new ProxySource();
-        $proxySource->proxy_id  = $proxy->id;
+        $proxySource = new ProxySource();
+        $proxySource->proxy_id = $proxy->id;
         $proxySource->source_id = $sid;
         $proxySource->save();
 
@@ -293,7 +294,7 @@ class SourceController extends Controller
 
     public function actionProxyStatus($id)
     {
-        $proxySource         = ProxySource::findOne($id);
+        $proxySource = ProxySource::findOne($id);
         $proxySource->status = $proxySource->status ? 0 : 1;
         $proxySource->save();
 
@@ -322,9 +323,10 @@ class SourceController extends Controller
     {
         $regionSource = RegionSource::findOne($id);
         $globalRegion = RegionSource::find()->where(['source_id' => $source, 'status' => 2])->one();
-        if ($globalRegion && $globalRegion != $regionSource) {
-            return 'В рамках ресурса глобальный регион может быть только один!';
-        }
+
+        if ($globalRegion && $globalRegion != $regionSource)
+            return 'Within a resource, there can only be one global region!';
+
         $regionSource->status = $regionSource->status == 2 ? 1 : 2;
         $regionSource->save();
 

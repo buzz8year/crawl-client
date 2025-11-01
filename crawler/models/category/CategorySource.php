@@ -58,7 +58,8 @@ class CategorySource extends \yii\db\ActiveRecord
         return $data;
     }
 
-    public function getTags() {
+    public function getTags() 
+    {
         // // if ($this->self_parent_id) {
         //     // $parent = Category::findOne($this->self_parent_id);
         //     // return $morphier->getPhraseLemmas($parent->title) . '+' . $morphier->getPhraseLemmas($this->category->title);
@@ -70,10 +71,12 @@ class CategorySource extends \yii\db\ActiveRecord
         //     // return array_reverse($lemmas);
         // // }
 
-        if ($tagsImplode = $this->category->tags) {
+        if ($tagsImplode = $this->category->tags) 
+        {
             $tags = [];
             $exp = explode('+', $tagsImplode);
-            foreach ($exp as $tagId) {
+            foreach ($exp as $tagId) 
+            {
                 $tag = CategoryTags::findOne($tagId);
                 $tags[] = $tag->tag;
             }
@@ -84,35 +87,67 @@ class CategorySource extends \yii\db\ActiveRecord
 
     }
 
-
-    // // public function getRecursiveLemmas(int $categoryId, string $lemmas = '')
-    // public function getRecursiveLemmas(int $categoryId, array $lemmas = [])
-    // {
-    //     $morphier = new Morph('ru');
-    //     $categorySource = CategorySource::findOne($categoryId);
-    //     $category = Category::findOne($categorySource->category_id);
-    //     if ($category->title !== '--') {
-    //         // $lemmas = $morphier->getPhraseLemmas($category->title) . ($lemmas ? ('+' . $lemmas) : '');
-    //         $newLemmas = $morphier->getPhraseLemmas($category->title, 1);
-    //         // $newLemmas = $morphier->getPhraseLemmas($category->title);
-    //         foreach ($newLemmas as $key => $newLemma) {
-    //             if (!in_array($newLemma, $lemmas)) {
-    //                 $lemmas[] = $newLemma;
-    //                 // array_unshift($lemmas, $newLemma);
-    //             }
-    //         }
-    //     }
-    //     if ($parentId = CategorySource::findOne($categoryId)->self_parent_id) {
-    //         return $this->getRecursiveLemmas($parentId, $lemmas);
-    //     }
-    //     // return $lemmas;
-    //     return array_reverse($lemmas);
-    // }
-
     public function getSource()
     {
         return $this->hasOne(Source::class, ['id' => 'source_id']);
     }
 
+    // public function getRecursiveLemmas(int $categoryId, array $lemmas = []) {
+    //     $morphier = new Morph('ru');
+    //     $categorySource = CategorySource::findOne($categoryId);
+    //     $category = Category::findOne($categorySource->category_id);
+    //     if ($category->title !== '--') {
+    //         $newLemmas = $morphier->getPhraseLemmas($category->title, 1);
+    //         foreach ($newLemmas as $key => $newLemma)
+    //             if (!in_array($newLemma, $lemmas))
+    //                 $lemmas[] = $newLemma;
+    //     }
+    //     if ($parentId = CategorySource::findOne($categoryId)->self_parent_id)
+    //         return $this->getRecursiveLemmas($parentId, $lemmas);
+    //     return array_reverse($lemmas);
+    // }
 
+    public static function getMaxNestLevelBySourceId(int $sourceId)
+    {
+        return CategorySource::find()
+            ->where('source_id = ' . $sourceId)
+            ->max('nest_level');
+    }
+
+    public static function findBySourceIdAndUrl(int $sourceId, string $url):? self
+    {
+        return self::find()->where(['source_id' => $sourceId, 'source_url' => $url])->one();
+    }
+
+    public static function findExisting(int $categoryId, int $sourceId, string $href):? self
+    {
+        return self::find()->where(['category_id' => $categoryId, 'source_id' => $sourceId, 'source_url' => $href])->one();
+    }
+
+    public static function findAllAsArrayById(int $id): array
+    {
+        return self::find()
+            ->where(['source_id' => $id])
+            ->orderBy('nest_level')
+            ->asArray()
+            ->all();
+    }
+
+    public static function createByCategoryArray(array $categoryArray, int $categoryId, int $parentId, int $sourceId): ?self
+    {
+        $new = new self();
+        $new->category_id = $categoryId;
+        $new->source_url = $categoryArray['href'];
+        $new->source_category_id = $categoryArray['csid'] ?? null;
+        $new->source_category_alias = $categoryArray['alias'] ?? '';
+        $new->source_url_dump = $categoryArray['dump'] ?? '';
+        $new->nest_level = $categoryArray['nest_level'];
+        $new->self_parent_id = $parentId;
+        $new->source_id  = $sourceId;
+
+        if (!$new->save())
+            Yii::error($new->errors, 'error-settler-nest-category-source-new-save');
+
+        return $new;
+    }
 }

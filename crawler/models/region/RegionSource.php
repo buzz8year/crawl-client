@@ -2,6 +2,7 @@
 
 namespace crawler\models\region;
 
+use crawler\models\source\Source;
 use Yii;
 
 /**
@@ -32,8 +33,8 @@ class RegionSource extends \yii\db\ActiveRecord
         return [
             [['region_id', 'source_id'], 'required'],
             [['region_id', 'source_id', 'status'], 'integer'],
-            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::className(), 'targetAttribute' => ['region_id' => 'id']],
-            [['source_id'], 'exist', 'skipOnError' => true, 'targetClass' => Source::className(), 'targetAttribute' => ['source_id' => 'id']],
+            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
+            [['source_id'], 'exist', 'skipOnError' => true, 'targetClass' => Source::class, 'targetAttribute' => ['source_id' => 'id']],
         ];
     }
 
@@ -54,7 +55,7 @@ class RegionSource extends \yii\db\ActiveRecord
      */
     public function getRegion()
     {
-        return $this->hasOne(Region::className(), ['id' => 'region_id']);
+        return $this->hasOne(Region::class, ['id' => 'region_id']);
     }
 
     /**
@@ -62,6 +63,6 @@ class RegionSource extends \yii\db\ActiveRecord
      */
     public function getSource()
     {
-        return $this->hasOne(Source::className(), ['id' => 'source_id']);
+        return $this->hasOne(Source::class, ['id' => 'source_id']);
     }
 }

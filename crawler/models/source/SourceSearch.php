@@ -60,9 +60,9 @@ class SourceSearch extends Source
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
-            'need_synonymizer' => $this->need_synonymizer,
             'need_proxy' => $this->need_proxy,
             'need_captcha' => $this->need_captcha,
+            'need_synonymizer' => $this->need_synonymizer,
         ]);
 
         $query->andFilterWhere(['like', 'title', $this->title])

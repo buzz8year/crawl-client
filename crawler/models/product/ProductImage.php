@@ -3,6 +3,7 @@
 namespace crawler\models\product;
 
 use crawler\models\image\Image;
+use crawler\util\SettlingException;
 use Yii;
 
 /**
@@ -63,5 +64,22 @@ class ProductImage extends \yii\db\ActiveRecord
     public function getProduct()
     {
         return $this->hasOne(Product::class, ['id' => 'product_id']);
+    }
+
+    public static function findExisting(int $productId, int $imageId)
+    {
+        return ProductImage::find()->where(['product_id' => $productId, 'image_id' => $imageId])->one();
+    }
+
+    public static function createByImageIdAndProductId($imageId, $productId)
+    {
+        $model = new self();
+        $model->image_id = $imageId;
+        $model->product_id = $productId;
+
+        if (!$model->save()) 
+            throw new SettlingException($model);
+
+        return $model;
     }
 }

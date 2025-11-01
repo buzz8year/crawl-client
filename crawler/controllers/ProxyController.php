@@ -4,12 +4,12 @@ namespace crawler\controllers;
 
 use crawler\models\proxy\Proxy;
 use crawler\models\proxy\ProxySearch;
-use Yii;
-use crawler\models\spource\Source;
+use crawler\models\source\Source;
 use crawler\models\proxy\ProxySource;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use Yii;
 
 /**
  * ProxyController implements the CRUD actions for Proxy model.
@@ -67,9 +67,8 @@ class ProxyController extends Controller
     {
         $model = new Proxy();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('create', [
             'model' => $model,
@@ -86,9 +85,8 @@ class ProxyController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('update', [
             'model' => $model,
@@ -104,7 +102,6 @@ class ProxyController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
@@ -115,19 +112,21 @@ class ProxyController extends Controller
      */
     public function actionAssignGlobal($id)
     {
-        foreach (Source::find()->all() as $source) {
+        foreach (Source::find()->all() as $source) 
+        {
             $proxySourceExist = ProxySource::find()->where(['source_id' => $source->id])->one();
 
-            if (!$proxySourceExist) {
+            if (!$proxySourceExist) 
+            {
                 $newProxySource = new ProxySource();
-                $newProxySource->proxy_id = $id;
                 $newProxySource->source_id = $source->id;
+                $newProxySource->proxy_id = $id;
                 $newProxySource->save();
             }
         }
 
         $session = Yii::$app->session;
-        $session->setFlash('proxy-global', 'Прокси подписан ко всем ресурсам.');
+        $session->setFlash('proxy-global', 'Proxy has been assigned to all sources.');
         return $this->redirect(['proxy/update', 'id' => $id]);
     }
 
@@ -140,9 +139,8 @@ class ProxyController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Proxy::findOne($id)) !== null) {
+        if (($model = Proxy::findOne($id)) !== null)
             return $model;
-        }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }

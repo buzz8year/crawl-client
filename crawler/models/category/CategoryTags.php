@@ -52,6 +52,22 @@ class CategoryTags extends \yii\db\ActiveRecord
      */
     public function getCategorySources()
     {
-        return $this->hasMany(CategorySource::className(), ['category_tags_id' => 'id']);
+        return $this->hasMany(CategorySource::class, ['category_tags_id' => 'id']);
+    }
+
+    public static function findByTag(string $tag): ?self
+    {
+        return self::findOne(['tag' => $tag]);
+    }
+
+    public static function createByTag(string $tag): self
+    {
+        $new = new self();
+        $new->tag = $tag;
+
+        if (!$new->save())
+            Yii::error($new->getErrors(), __METHOD__);
+
+        return $new;
     }
 }

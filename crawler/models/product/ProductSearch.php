@@ -17,12 +17,6 @@ class ProductSearch extends Product
         ];
     }
 
-
-    // public function scenarios() {
-    //     return Model::scenarios();
-    // }
-
-
     public function search (array $params, int $pageSize = 20, bool $sync = false)
     {
         $query = Product::find();

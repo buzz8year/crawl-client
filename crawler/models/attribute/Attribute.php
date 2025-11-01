@@ -2,8 +2,10 @@
 
 namespace crawler\models\attribute;
 
-use Yii;
+use crawler\models\product\ProductAttribute;
 use yii\helpers\ArrayHelper;
+use Yii;
+use function DI\string;
 
 
 class Attribute extends \yii\db\ActiveRecord
@@ -14,7 +16,6 @@ class Attribute extends \yii\db\ActiveRecord
         return 'attribute';
     }
 
-
     public function rules()
     {
         return [
@@ -22,7 +23,6 @@ class Attribute extends \yii\db\ActiveRecord
             [['title'], 'string', 'max' => 255],
         ];
     }
-
 
     public function attributeLabels()
     {
@@ -32,22 +32,42 @@ class Attribute extends \yii\db\ActiveRecord
         ];
     }
 
+    public function getAttributeValues()
+    {
+        return $this->hasMany(AttributeValue::class, ['attribute_id' => 'id']);
+    }
 
-    static function listAttributes() 
+    public function getProductAttributes()
+    {
+        return $this->hasMany(ProductAttribute::class, ['attribute_id' => 'id']);
+    }
+
+    public static function listAttributes() 
     {
         return ArrayHelper::map( self::find()->all(), 'id', 'title' );
     }
 
-
-
-    public function getAttributeValues()
+    public static function findOneWithValues(int $id, int $valueId)
     {
-        return $this->hasMany(AttributeValue::className(), ['attribute_id' => 'id']);
+        return self::find()
+            ->select('*')
+            ->join('LEFT JOIN', 'attribute_value av', 'av.attribute_id = attribute.id')
+            ->where(['attribute.id' => $id, 'av.id' => $valueId])
+            ->asArray()
+            ->one();
     }
 
-
-    public function getProductAttributes()
+    public static function createByTitle(string $title)
     {
-        return $this->hasMany(ProductAttribute::className(), ['attribute_id' => 'id']);
+        $model = new self();
+        $model->title = $title;
+        if ($model->save())
+            Yii::error('Attribute create error: ' . json_encode($model->getErrors()));
+        return $model;
+    }
+
+    public static function findByTitle(string $title)
+    {
+        return self::find()->where(['title' => $title])->one();
     }
 }

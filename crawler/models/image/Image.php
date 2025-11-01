@@ -2,8 +2,8 @@
 
 namespace crawler\models\image;
 
+use crawler\models\product\ProductImage;
 use Yii;
-
 
 class Image extends \yii\db\ActiveRecord
 {
@@ -31,6 +31,30 @@ class Image extends \yii\db\ActiveRecord
 
     public function getProductImages()
     {
-        return $this->hasMany(ProductImage::className(), ['image_id' => 'id']);
+        return $this->hasMany(ProductImage::class, ['image_id' => 'id']);
+    }
+
+    public static function findOneByUrl(string $url)
+    {
+        return Image::find()
+            ->where(['source_url' => $url])
+            ->one();
+    }
+
+    public static function findOneAsArray(int $id)
+    {
+        return Image::find()
+            ->where(['id' => $id])
+            ->asArray()
+            ->one();
+    }
+
+    public static function findThumbAsArray(int $id)
+    {
+        return Image::find()
+            ->where(['id' => $id])
+            ->andWhere(['not', ['self_parent_id' => null]])
+            ->asArray()
+            ->one();
     }
 }

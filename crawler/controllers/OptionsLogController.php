@@ -5,9 +5,9 @@ namespace crawler\controllers;
 use Yii;
 use crawler\models\options\OptionsLog;
 use crawler\models\options\OptionsLogSearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Controller;
 
 /**
  * OptionsLogController implements the CRUD actions for OptionsLog model.

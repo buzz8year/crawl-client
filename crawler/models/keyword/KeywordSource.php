@@ -68,7 +68,18 @@ class KeywordSource extends \yii\db\ActiveRecord
         return $this->hasOne(Source::class, ['id' => 'source_id']);
     }
 
-    public static function create(int $keywordId, int $sourceId)
+    public static function findByKeywordId(int $keywordId)
+    {
+        return self::find()->where(['keyword_id' => $keywordId])->one();
+    }
+
+    public static function createForAllSources(int $keywordId): void
+    {
+        foreach (Source::find()->all() as $source) 
+            KeywordSource::create($keywordId, $source->id);
+    }
+
+    public static function create(int $keywordId, int $sourceId): KeywordSource
     {
         $keywordSource = new self();
         $keywordSource->keyword_id = $keywordId;

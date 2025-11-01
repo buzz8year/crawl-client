@@ -3,18 +3,18 @@
 namespace crawler\controllers;
 
 use Yii;
-use crawler\models\source\Source;
-use crawler\models\product\Product;
-use crawler\models\product\ProductAttribute;
-use crawler\models\product\ProductSearch;
-use crawler\models\parser\Parser;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use crawler\models\parser\ParserFactory;
+use crawler\models\product\ProductAttribute;
+use crawler\models\product\ProductSearch;
+use crawler\models\product\Product;
+use crawler\models\source\Source;
+use crawler\models\parser\Parser;
 use yii\filters\VerbFilter;
 
-use crawler\models\opencart\OcSettler;
+use crawler\models\sync\OcSettler;
 use crawler\models\sync\YiiShopSettler;
-
 
 /**
  * ProductController implements the CRUD actions for Product model.
@@ -28,7 +28,7 @@ class ProductController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
@@ -44,23 +44,23 @@ class ProductController extends Controller
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
         // $ocProducts = OcSettler::countProducts();
 
         $syncData = [];
-
-        if (Yii::$app->request->post('syncGoods')) {
+        if (Yii::$app->request->post('syncGoods')) 
+        {
             // $syncData = OcSettler::saveProducts();
-            foreach (Product::find()->all() as $product) {
+            foreach (Product::find()->all() as $product) 
+            {
                 $product->sync_status = 1;
                 $product->save();
             }
         }
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
             // 'ocProducts' => $ocProducts,
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
             'syncData' => $syncData,
         ]);
     }
@@ -68,11 +68,9 @@ class ProductController extends Controller
     public function actionSyncProduct(int $id)
     {
         // YiiShopSettler::saveProduct($this->findModel($id));
-        if (YiiShopSettler::saveProduct($this->findModel($id))) {
+        if (YiiShopSettler::saveProduct($this->findModel($id)))
             echo 'ok';
-        } else {
-            echo 'not ok';
-        }
+        else echo 'not ok';
     }
 
     /**
@@ -97,9 +95,11 @@ class ProductController extends Controller
         $model = new Product();
         $modelAttribute = new ProductAttribute();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save() && $modelAttribute->load(Yii::$app->request->post()) && $modelAttribute->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
+        if ($model->load(Yii::$app->request->post()) 
+            && $model->save() 
+            && $modelAttribute->load(Yii::$app->request->post()) 
+            && $modelAttribute->save())
+                return $this->redirect(['view', 'id' => $model->id]);
 
         return $this->render('create', [
             'model' => $model,
@@ -117,9 +117,8 @@ class ProductController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('update', [
             'model' => $model,
@@ -135,20 +134,17 @@ class ProductController extends Controller
      */
     public function actionUpdateDetails($id)
     {
-        $model = $this->findModel($id);
+        $product = $this->findModel($id);
 
-        $super = new Parser();
-        $modelParser = $super->createModel($model->source_id);
-        $parser = new $modelParser->class();
+        $factory = new ParserFactory();
+        $factory->setParser($product->source_id);
 
-        $parser->parseDetails([$model->id => $model->source_url]);
+        $factory->parser->parseDetails();
 
         return $this->render('update', [
-            'model' => $model,
+            'model' => $product,
         ]);
     }
-
-
 
     /**
      * Deletes an existing Product model.
@@ -159,7 +155,6 @@ class ProductController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
@@ -187,14 +182,19 @@ class ProductController extends Controller
     public function deleteProducts(int $async = 0)
     {
         $sources = Source::find()->all();
-        foreach ($sources as $source) {
-            foreach ($source->products as $product) {
-                if ($async) {
-                    if ($product->sync_status == 0) {
+        foreach ($sources as $source) 
+        {
+            foreach ($source->products as $product) 
+            {
+                if ($async) 
+                {
+                    if ($product->sync_status == 0) 
+                    {
                         $this->deleteDetails($product);
                         $product->delete();
                     }
-                } else {
+                } 
+                else {
                     $this->deleteDetails($product);
                     $product->delete();
                 }
@@ -204,20 +204,20 @@ class ProductController extends Controller
 
     public function deleteDetails($product)
     {
-        if ($product->descriptions) {
-            foreach ($product->descriptions as $description) {
+        if ($product->descriptions) 
+        {
+            foreach ($product->descriptions as $description)
                 $description->delete();
-            }
         }
-        if ($product->productAttributes) {
-            foreach ($product->productAttributes as $attribute) {
+        if ($product->productAttributes) 
+        {
+            foreach ($product->productAttributes as $attribute)
                 $attribute->delete();
-            }
         }
-        if ($product->productImages) {
-            foreach ($product->productImages as $image) {
+        if ($product->productImages) 
+        {
+            foreach ($product->productImages as $image)
                 $image->delete();
-            }
         }
     }
 
@@ -230,9 +230,8 @@ class ProductController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Product::findOne($id)) !== null) {
+        if (($model = Product::findOne($id)) !== null)
             return $model;
-        }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }

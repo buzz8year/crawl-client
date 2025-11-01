@@ -16,10 +16,14 @@ use crawler\models\region\RegionSource;
 use yii\helpers\ArrayHelper;
 use Yii;
 
-
+/**
+ * This is the model class for table "source".
+ *
+ * @property int $id
+ * @property string $source_url
+ */
 class Source extends \yii\db\ActiveRecord
 {
-
     public const int SYNONYMIZE = 1;
     public const int NOT_SYNONYMIZE = 0;
     public const int PROXY = 1;
@@ -74,7 +78,6 @@ class Source extends \yii\db\ActiveRecord
         ];
     }
 
-
     public function synonymizeHighlight()
     {
         return self::highlightSelector()[$this->need_synonymizer];
@@ -90,27 +93,14 @@ class Source extends \yii\db\ActiveRecord
         return self::highlightSelector()[$this->need_captcha];
     }
 
-
-    public static function highlightSelector()
+    public function captchaStatus()
     {
-        return [
-            self::OFF_SELECTOR,
-            self::ON_SELECTOR,
-        ];
+        return self::captchaStatusText()[$this->need_captcha];
     }
-
 
     public function synonymizeStatus()
     {
         return self::synonymizeStatusText()[$this->need_synonymizer];
-    }
-
-    public static function synonymizeStatusText()
-    {
-        return [
-            self::SYNONYMIZE     => 'Вкл',
-            self::NOT_SYNONYMIZE => 'Выкл',
-        ];
     }
 
     public function proxyStatus()
@@ -118,196 +108,127 @@ class Source extends \yii\db\ActiveRecord
         return self::proxyStatusText()[$this->need_proxy];
     }
 
-    public static function proxyStatusText()
-    {
-        return [
-            self::PROXY     => 'Вкл',
-            self::NOT_PROXY => 'Выкл',
-        ];
-    }
-
-    public function captchaStatus()
-    {
-        return self::captchaStatusText()[$this->need_captcha];
-    }
-
-    public static function captchaStatusText()
-    {
-        return [
-            self::CAPTCHA     => 'Вкл',
-            self::NOT_CAPTCHA => 'Выкл',
-        ];
-    }
-
-    static function listSources() 
-    {
-        return ArrayHelper::map( self::find()->all(), 'id', 'title' );
-    }
-
-
     public function getCategorySources()
     {
         return $this->hasMany(CategorySource::class, ['source_id' => 'id']);
     }
-
 
     public function getCountCategorySources()
     {
         return CategorySource::find()->where(['source_id' => $this->id])->count();
     }
 
-
     public function getHeaderSources()
     {
-        return $this->hasMany(HeaderSource::class, ['source_id' => 'id']);
+        return $this->hasMany(HeaderSource::class, ['source_id' => 'id'])->where(['status' => 1]);
     }
-
 
     public function getHeaderValues()
     {
         $arrayHeaders = [];
-        
-        foreach ($this->headerSources as $header) {
+        foreach ($this->headerSources as $header) 
+        {
             $title = Header::findOne($header['header_id'])->title;
             $value = HeaderValue::findOne($header['header_value_id'])->value;
 
-            if ( $header->status )
-                $arrayHeaders[strtolower($title)][] = [
-                    $title . ': ' . $value,
-                ];
+            $arrayHeaders[strtolower($title)][] = [$title . ': ' . $value];
         }
-
         return $arrayHeaders;
     }
-
 
     public function getProxies()
     {
         $arrayProxies = [];
         
-        foreach ($this->proxySources as $proxySource) {
+        foreach ($this->proxySources as $proxySource) 
+        {
             $proxy = Proxy::findOne($proxySource['proxy_id']);
-
-            $address = $proxy->ip . ($proxy->port ? (':' . $proxy->port) : '');
-            $password = $proxy->login ? ($proxy->login . ':' . $proxy->password) : '';
-
-            if ($proxySource->status) {
+            
+            if ($proxySource->status) 
                 $arrayProxies['ipv' . $proxy->version][] = [
-                    'address'   => $address,
-                    'password'  => $password,
+                    'password' => $proxy->getLoginPassword(),
+                    'address' => $proxy->getIpPort(),
                 ];
-            }
         }
 
-        foreach (Proxy::find()->all() as $proxy) {
-            $address = $proxy->ip . ($proxy->port ? (':' . $proxy->port) : '');
-            $password = $proxy->login ? ($proxy->login . ':' . $proxy->password) : '';
+        foreach (Proxy::find()->all() as $proxy) 
+        {
+            $address = $proxy->getIpPort();
+            $password = $proxy->getLoginPassword();
 
-            if (!in_array($address, $arrayProxies['ipv' . $proxy->version])) {
+            if (!in_array($address, $arrayProxies['ipv' . $proxy->version])) 
                 $arrayProxies['ipv' . $proxy->version][] = [
-                    'address'   => $address,
-                    'password'  => $password,
+                    'password' => $password,
+                    'address' => $address,
                 ];
-            }
         }
 
         return $arrayProxies;
     }
-
-
 
     public function getProxySources()
     {
         return $this->hasMany(ProxySource::class, ['source_id' => 'id'])->orderBy(['queue' => SORT_ASC]);
     }
 
-
-
     public function getAllProxies()
     {
         $arrayProxies = [];
         
-        foreach (Proxy::find()->all() as $proxy) {
-            $address = $proxy->ip . ( $proxy->port ? ':' . $proxy->port : '' );
-            $password = $proxy->login ? $proxy->login . ':' . $proxy->password : '';
-
+        foreach (Proxy::find()->all() as $proxy) 
             $arrayProxies['ipv' . $proxy->version][] = [
-                'address'   => $address,
-                'password'  => $password,
+                'password' => $proxy->getLoginPassword(),
+                'address' => $proxy->getIpPort(),
             ];
-        }
 
         return $arrayProxies;
     }
 
-
-
-
     public function getAllHeaderValues(string $title)
     {
         $arrayHeaders = [];
-        
-        foreach (Header::find()->all() as $header) {
-            $value = HeaderValue::findOne($header['header_value_id'])->value;
-
-            if ( $header->status )
-                $arrayHeaders[strtolower($title)][] = [
-                    $title . ': ' . $value,
-                ];
+        foreach (Header::findAllActive() as $header) 
+        {
+            $value = HeaderValue::findOne($header['header_value_id'])->value ?? '';
+            $arrayHeaders[strtolower($title)][] = [$title . ': ' . $value];
         }
-
         return $arrayHeaders;
     }
-
-    
-
 
     public function getProducts()
     {
         return $this->hasMany(Product::class, ['source_id' => 'id']);
     }
 
-
     public function getCountProducts()
     {
         return Product::find()->where(['source_id' => $this->id])->count();
     }
-
 
     public function getAsyncProducts()
     {
         return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->asArray()->all();
     }
 
-
-
     public function getCountAsyncProducts()
     {
         return Product::find()->where(['source_id' => $this->id, 'sync_status' => 0])->count();
     }
 
-
-
     public function getProductUrls()
     {
         return ArrayHelper::map( Product::find()->where(['source_id' => $this->id])->all(), 'id', 'source_url' );
-        // $products = Yii::$app->db->createCommand('
-        //     SELECT id, source_url
-        //     FROM product
-        // ')->queryAll();
-        
-        // return ArrayHelper::map($products, 'id', 'source_url');
     }
 
     public function getEmptyProducts()
     {
         $products = Product::find()->where(['source_id' => $this->id])->all();
         $productUrls = [];
-        foreach ($products as $product) {
-            if (!$product->productImages && !$product->descriptions && !$product->productAttributes) {
+
+        foreach ($products as $product)
+            if (!$product->productImages && !$product->descriptions && !$product->productAttributes)
                 $productUrls[$product->id] = $product->source_url;
-            }
-        }
+
         return $productUrls;
     }
 
@@ -319,48 +240,28 @@ class Source extends \yii\db\ActiveRecord
     public function getWords()
     {   
         $keywords = [];
-        foreach ($this->keywordSources as $keywordSource) {
+        foreach ($this->keywordSources as $keywordSource)
             $keywords[] = Keyword::find()->where(['id' => $keywordSource->keyword_id])->one();
-        }
+
         return $keywords;
     }
 
-    static function findKeyword(string $keyword)
-    {   
-        return Keyword::find()->where(['word' => $keyword])->one();
-    }
-
-
-    public function listRegions()
-    {
-        return ArrayHelper::map( \crawler\models\region\Region::find()->all(), 'id', 'alias' );
-    }
-
-
     public function getRegionSources()
     {
-        return $this->hasMany(RegionSource::className(), ['source_id' => 'id']);
+        return $this->hasMany(RegionSource::class, ['source_id' => 'id']);
     }
 
     public function getRegions()
     {   
         $regions = [];
-        foreach ($this->regionSources as $regionSource) {
-            $regions[] = \crawler\models\region\Region::find()
-                ->select('*')
-                ->join('join', 'region_source rs', 'rs.region_id = region.id')
-                ->where(['region.id' => $regionSource->region_id, 'rs.source_id' => $regionSource->source_id])
-                ->asArray()
-                ->one();
-        }
+        foreach ($this->regionSources as $regionSource)
+            $regions[] = Region::findByRegionSource($regionSource);
+
         return $regions;
     }
 
-    public function appendUrl(string $url)
+    public function getUrl(string $url)
     {   
-        // if ($this->factory->model && $this->factory->model->domain && !$sourceId)
-        //     $domain = $this->factory->model->domain;
-
         $domain = $this->source_url;
 
         if (strpos($domain, 'www') === false) 
@@ -389,6 +290,51 @@ class Source extends \yii\db\ActiveRecord
         return RegionSource::find()->where(['alias' => $region])->one();
     }
 
+    public static function findAllActive()
+    {   
+        return self::find()->where(['status' => 1])->all();
+    }
 
+    public static function findKeyword(string $keyword)
+    {   
+        return Keyword::find()->where(['word' => $keyword])->one();
+    }
     
+    public static function listSources() 
+    {
+        return ArrayHelper::map( self::find()->all(), 'id', 'title' );
+    }
+
+    public static function highlightSelector()
+    {
+        return [
+            self::OFF_SELECTOR,
+            self::ON_SELECTOR,
+        ];
+    }
+
+    public static function synonymizeStatusText()
+    {
+        return [
+            self::SYNONYMIZE => 'On',
+            self::NOT_SYNONYMIZE => 'Off',
+        ];
+    }
+
+    public static function proxyStatusText()
+    {
+        return [
+            self::PROXY => 'On',
+            self::NOT_PROXY => 'Off',
+        ];
+    }
+
+    public static function captchaStatusText()
+    {
+        return [
+            self::CAPTCHA => 'On',
+            self::NOT_CAPTCHA => 'Off',
+        ];
+    }
+
 }

@@ -2,6 +2,8 @@
 
 namespace crawler\models\attribute;
 
+use crawler\models\product\ProductAttribute;
+use crawler\util\SettlingException;
 use Yii;
 
 /**
@@ -54,7 +56,7 @@ class AttributeValue extends \yii\db\ActiveRecord
      */
     public function getAttribute0()
     {
-        return $this->hasOne(Attribute::className(), ['id' => 'attribute_id']);
+        return $this->hasOne(Attribute::class, ['id' => 'attribute_id']);
     }
 
     /**
@@ -62,6 +64,23 @@ class AttributeValue extends \yii\db\ActiveRecord
      */
     public function getProductAttributes()
     {
-        return $this->hasMany(ProductAttribute::className(), ['attribute_value_id' => 'id']);
+        return $this->hasMany(ProductAttribute::class, ['attribute_value_id' => 'id']);
+    }
+
+    public static function findExisting(int $attributeId, string $value)
+    {
+        return self::find()->where(['attribute_id' => $attributeId, 'value' => trim($value)])->one();
+    }
+
+    public static function create(int $attributeId, string $value): AttributeValue
+    {
+        $model = new AttributeValue();
+        $model->attribute_id = $attributeId;
+        $model->value = $value;
+
+        if (!$model->save()) 
+            throw new SettlingException($model);
+
+        return $model;
     }
 }

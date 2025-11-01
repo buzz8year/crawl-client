@@ -54,7 +54,7 @@ class HeaderValue extends \yii\db\ActiveRecord
      */
     public function getHeaderSources()
     {
-        return $this->hasMany(HeaderSource::className(), ['header_value_id' => 'id']);
+        return $this->hasMany(HeaderSource::class, ['header_value_id' => 'id']);
     }
 
     /**
@@ -62,6 +62,15 @@ class HeaderValue extends \yii\db\ActiveRecord
      */
     public function getHeader()
     {
-        return $this->hasOne(Header::className(), ['id' => 'header_id']);
+        return $this->hasOne(Header::class, ['id' => 'header_id']);
+    }
+
+    public static function getIdByAgent(string $agent)
+    {
+        $exp = explode(':', $agent);
+        return HeaderValue::find()
+            ->where(['value' => $exp[1]])
+            ->one()->id 
+            ?? null;
     }
 }

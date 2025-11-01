@@ -6,12 +6,8 @@ use yii\web\Controller;
 use crawler\models\history\History;
 use crawler\models\history\HistorySearch;
 
-
 class HistoryController extends Controller
 {
-
-
-
     public function actionIndex()
     {
         $searchModel = new HistorySearch();
@@ -23,7 +19,4 @@ class HistoryController extends Controller
             'dataProvider' => $dataProvider,
         ]);
     }
-
-
-
 }

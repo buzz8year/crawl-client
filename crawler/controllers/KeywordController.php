@@ -4,10 +4,10 @@ namespace crawler\controllers;
 
 use Yii;
 use crawler\models\keyword\Keyword;
-use crawler\models\search\KeywordSearch;
-use yii\web\Controller;
+use crawler\models\keyword\KeywordSearch;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Controller;
 
 /**
  * KeywordController implements the CRUD actions for Keyword model.
@@ -21,7 +21,7 @@ class KeywordController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
@@ -65,9 +65,8 @@ class KeywordController extends Controller
     {
         $model = new Keyword();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('create', [
             'model' => $model,
@@ -84,9 +83,8 @@ class KeywordController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('update', [
             'model' => $model,
@@ -103,7 +101,6 @@ class KeywordController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
@@ -116,9 +113,8 @@ class KeywordController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Keyword::findOne($id)) !== null) {
+        if (($model = Keyword::findOne($id)) !== null)
             return $model;
-        }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }

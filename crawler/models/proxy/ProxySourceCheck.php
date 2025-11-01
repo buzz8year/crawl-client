@@ -33,7 +33,7 @@ class ProxySourceCheck extends \yii\db\ActiveRecord
             [['proxy_source_id', 'status'], 'required'],
             [['proxy_source_id', 'status'], 'integer'],
             [['check_date'], 'safe'],
-            [['proxy_source_id'], 'exist', 'skipOnError' => true, 'targetClass' => ProxySource::className(), 'targetAttribute' => ['proxy_source_id' => 'id']],
+            [['proxy_source_id'], 'exist', 'skipOnError' => true, 'targetClass' => ProxySource::class, 'targetAttribute' => ['proxy_source_id' => 'id']],
         ];
     }
 
@@ -55,6 +55,6 @@ class ProxySourceCheck extends \yii\db\ActiveRecord
      */
     public function getProxySource()
     {
-        return $this->hasOne(ProxySource::className(), ['id' => 'proxy_source_id']);
+        return $this->hasOne(ProxySource::class, ['id' => 'proxy_source_id']);
     }
 }

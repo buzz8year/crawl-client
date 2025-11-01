@@ -3,6 +3,7 @@
 namespace crawler\models\description;
 
 use crawler\models\product\Product;
+use crawler\util\SettlingException;
 use Yii;
 
 
@@ -43,5 +44,32 @@ class Description extends \yii\db\ActiveRecord
     public function getProduct()
     {
         return $this->hasOne(Product::class, ['id' => 'product_id']);
+    }
+
+    public static function findExisting(int $productId, string $text) : ?self 
+    {
+        return Description::find()
+            ->where(['product_id' => $productId, 'text_original' => $text])
+            ->one();
+    }
+
+    public static function exists(int $productId, string $text) : bool 
+    {
+        return (bool) Description::find()
+            ->where(['product_id' => $productId, 'text_original' => $text])
+            ->scalar();
+    }
+
+    public static function create(int $productId, string $text,  string $title): Description
+    {
+        $model = new Description();
+        $model->product_id = $productId;
+        $model->text_original = $text;
+        $model->title = $title;
+
+        if (!$model->save()) 
+            throw new SettlingException($model);
+
+        return $model;
     }
 }

@@ -2,8 +2,6 @@
 
 namespace crawler\models\sync;
 
-use crawler\models\parser\ParserProvisioner;
-use crawler\models\CategorySource;
 use crawler\models\Product;
 use frontend\models\Product as YSProduct;
 use crawler\models\source\Source;

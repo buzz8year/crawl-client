@@ -1,5 +1,6 @@
 <?php
 
+use crawler\models\region\Region;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use crawler\models\source\Source;
@@ -142,7 +143,7 @@ use crawler\models\header\HeaderValue;
                     <?= Html::dropDownList(
                             '', 
                             [],
-                            $model->listRegions(),
+                            Region::listRegions(),
                             [
                                 'class'     => 'form-control',
                                 'prompt'    => 'Select to add an existing region',

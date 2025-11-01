@@ -5,9 +5,9 @@ namespace crawler\controllers;
 use Yii;
 use crawler\models\description\Description;
 use crawler\models\description\DescriptionSearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Controller;
 
 /**
  * DescriptionController implements the CRUD actions for Description model.
@@ -21,7 +21,7 @@ class DescriptionController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
@@ -64,10 +64,8 @@ class DescriptionController extends Controller
     public function actionCreate()
     {
         $model = new Description();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('create', [
             'model' => $model,
@@ -83,10 +81,8 @@ class DescriptionController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save())
             return $this->redirect(['view', 'id' => $model->id]);
-        }
 
         return $this->render('update', [
             'model' => $model,
@@ -102,7 +98,6 @@ class DescriptionController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 
@@ -115,9 +110,8 @@ class DescriptionController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Description::findOne($id)) !== null) {
+        if (($model = Description::findOne($id)) !== null)
             return $model;
-        }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }

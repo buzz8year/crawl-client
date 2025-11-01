@@ -1278,3 +1278,16 @@ tbody tr:hover, tbody tr:nth-of-type(odd):not(.bg-success):hover, tbody tr:nth-o
     color: #fff!important;
     text-shadow: none!important;
 }
+
+.link-source {
+    margin-top: 5px; word-break: break-all; width: 40%,
+}
+.link-href {
+    display:block; max-width: 30vw; overflow: hidden;
+}
+.label-categories {
+    color: #37a; padding: 0; background: none; border: none; position: absolute; right: 15px; top: 5px;
+}
+.strong-name {
+    display:block; max-width: 20vw; overflow: hidden;
+}

@@ -6,16 +6,17 @@ use crawler\models\category\CategorySource;
 use crawler\models\keyword\Keyword;
 use crawler\models\source\Source;
 use Yii;
+use yii\base\DynamicModel;
 
 class History extends \yii\db\ActiveRecord
 {
-    const STATUS_MAX         = 'Скорее всего достигнут максимум отдаваемый ресурсом во фронт - проверьте запрос непосредственно на ресурсе, чтобы убедиться.';
-    const STATUS_ZERO        = 'Сообщений на ресурсе не найдено. Ошибок в заголовках также нет.';
-    const STATUS_DEPRECIABLE = 'Возможность подобных запросов в будущем будет упразднена.';
-    const STATUS_WARNING     = 'Сообщения на ресурсе: ';
-    const STATUS_HEADER_FAIL = 'Плохой заголовок user-agent.';
-    const STATUS_PROXY_FAIL  = 'Плохой прокси.';
-    const STATUS_GENERAL     = 'Учет обращения.';
+    public const string STATUS_MAX         = 'Most likely the maximum returned by the resource in the front has been reached - check the request directly on the resource to confirm.';
+    public const string STATUS_ZERO        = 'No messages found on the resource. No errors in the headers either.';
+    public const string STATUS_DEPRECIABLE = 'The possibility of such requests will be deprecated in the future.';
+    public const string STATUS_GENERAL     = 'General accounting of the request.';
+    public const string STATUS_WARNING     = 'Messages on the resource: ';
+    public const string STATUS_HEADER_FAIL = 'Bad user-agent header.';
+    public const string STATUS_PROXY_FAIL  = 'Bad proxy.';
 
     public static function tableName()
     {
@@ -66,18 +67,41 @@ class History extends \yii\db\ActiveRecord
         return $this->hasOne(Keyword::class, ['id' => 'keyword_id']);
     }
 
-    // public function getProxySourceCheck()
-    // {
+    // public function getProxySourceCheck() {
     //     return $this->hasOne(ProxySourceCheck::class, ['id' => 'proxy_source_check_id']);
     // }
 
-    // public function getProxySource()
-    // {
+    // public function getProxySource() {
     //     return $this->hasOne(ProxySource::class, ['id' => 'proxy_source_id']);
     // }
 
     public function getSource()
     {
         return $this->hasOne(Source::class, ['id' => 'source_id']);
+    }
+
+    public static function createByParserModel(DynamicModel $model, float $time)
+    {
+        $history                     = new self();
+        $history->url                = $model->url;
+        $history->source_id          = $model->id;
+        $history->category_source_id = $model->categorySourceId;
+        $history->item_quantity      = count($model->products);
+        $history->keyword_id         = $model->keywordId;
+        $history->time               = $time;
+
+        switch (true) 
+        {
+            case $model->warnings:
+                $history->status = 5;
+                $history->note = History::STATUS_WARNING . implode(' - ', $model->warnings);
+
+            case $history->item_quantity == 0:
+                $history->status = 0;
+                $history->note = History::STATUS_ZERO;
+
+            default: $history->status = 1;
+        }
+        $history->save();
     }
 }

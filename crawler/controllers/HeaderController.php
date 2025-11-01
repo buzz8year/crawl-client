@@ -47,7 +47,6 @@ class HeaderController extends Controller
     public function actionCreate()
     {
         $model = new Header();
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) 
         {
             if (($newValues = Yii::$app->request->post('header-new-values'))) 
@@ -59,15 +58,12 @@ class HeaderController extends Controller
                         $headerValue = new HeaderValue();
                         $headerValue->header_id = $model->id;
                         $headerValue->value = $value;
-
                         $headerValue->save();
                     }
                 }
             }
-
             return $this->redirect(['view', 'id' => $model->id]);
         }
-
         return $this->render('create', [
             'model' => $model,
         ]);
@@ -108,7 +104,6 @@ class HeaderController extends Controller
                     }
                 }
             }
-
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -128,18 +123,16 @@ class HeaderController extends Controller
         $value = HeaderValue::findOne($id);
         $sourceValue = HeaderSource::find()->where(['header_value_id' => $id])->one();
         if ($sourceValue)
-            return 'Значение подписано на ресурс ' . Source::findOne($sourceValue->source_id)->title . ', указанный левее!';
+            return sprintf( 'The value is linked to the resource %s, specified to the left!', Source::findOne($sourceValue->source_id)->title);
 
-            $value->delete();
-
+        $value->delete();
         return 'deleted';
     }
 
     protected function findModel($id)
     {
-        if (($model = Header::findOne($id)) !== null) {
+        if (($model = Header::findOne($id)) !== null)
             return $model;
-        }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }

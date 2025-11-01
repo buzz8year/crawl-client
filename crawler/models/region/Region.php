@@ -2,15 +2,16 @@
 
 namespace crawler\models\region;
 
+use crawler\models\product\Product;
+use yii\helpers\ArrayHelper;
 use Yii;
 
 /**
  * This is the model class for table "region".
  *
  * @property int $id
- * @property string $alias
  * @property int $global
- *
+ * @property string $alias
  * @property RegionSource[] $regionSources
  */
 class Region extends \yii\db\ActiveRecord
@@ -47,16 +48,41 @@ class Region extends \yii\db\ActiveRecord
         ];
     }
 
+    public function getProducts()
+    {
+        return $this->hasMany(Product::class, ['region_id' => 'id']);
+    }
+
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getRegionSources()
     {
-        return $this->hasMany(RegionSource::className(), ['region_id' => 'id']);
+        return $this->hasMany(RegionSource::class, ['region_id' => 'id']);
     }
 
-    public function getProducts()
+    public static function findByRegionSource(RegionSource $regionSource)
     {
-        return $this->hasMany(Products::className(), ['region_id' => 'id']);
+        return self::find()
+            ->select('*')
+            ->join('join', 'region_source rs', 'rs.region_id = region.id')
+            ->where(['region.id' => $regionSource->region_id, 'rs.source_id' => $regionSource->source_id])
+            ->asArray()
+            ->one();
+    }
+
+    public static function findAllAsArrayByRegionSourceId(int $sourceId)
+    {
+        return self::find()
+            ->join('join', 'region_source rs', 'rs.region_id = region.id')
+            ->where(sprintf('rs.source_id = %d', $sourceId))
+            ->distinct(true)
+            ->asArray()
+            ->all();
+    }
+
+    public static function listRegions()
+    {
+        return ArrayHelper::map(self::find()->all(), 'id', 'alias');
     }
 }

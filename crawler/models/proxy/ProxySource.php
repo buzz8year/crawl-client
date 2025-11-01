@@ -2,54 +2,48 @@
 
 namespace crawler\models\proxy;
 
+use crawler\models\source\Source;
 use Yii;
-
 
 class ProxySource extends \yii\db\ActiveRecord
 {
-
     public static function tableName()
     {
         return 'proxy_source';
     }
-
 
     public function rules()
     {
         return [
             [['source_id', 'proxy_id'], 'required'],
             [['source_id', 'proxy_id', 'fail_counter', 'status', 'queue'], 'integer'],
-            [['proxy_id'], 'exist', 'skipOnError' => true, 'targetClass' => Proxy::className(), 'targetAttribute' => ['proxy_id' => 'id']],
-            [['source_id'], 'exist', 'skipOnError' => true, 'targetClass' => Source::className(), 'targetAttribute' => ['source_id' => 'id']],
+            [['proxy_id'], 'exist', 'skipOnError' => true, 'targetClass' => Proxy::class, 'targetAttribute' => ['proxy_id' => 'id']],
+            [['source_id'], 'exist', 'skipOnError' => true, 'targetClass' => Source::class, 'targetAttribute' => ['source_id' => 'id']],
         ];
     }
-
 
     public function attributeLabels()
     {
         return [
             'id' => 'ID',
+            'fail_counter' => 'Fail Counter',
             'source_id' => 'Source ID',
             'proxy_id' => 'Proxy ID',
-            'fail_counter' => 'Fail Counter',
         ];
     }
 
-
     public function getProxy()
     {
-        return $this->hasOne(Proxy::className(), ['id' => 'proxy_id']);
+        return $this->hasOne(Proxy::class, ['id' => 'proxy_id']);
     }
-
 
     public function getSource()
     {
-        return $this->hasOne(Source::className(), ['id' => 'source_id']);
+        return $this->hasOne(Source::class, ['id' => 'source_id']);
     }
-
 
     public function getProxySourceChecks()
     {
-        return $this->hasMany(ProxySourceCheck::className(), ['proxy_source_id' => 'id']);
+        return $this->hasMany(ProxySourceCheck::class, ['proxy_source_id' => 'id']);
     }
 }
