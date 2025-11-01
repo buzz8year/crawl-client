@@ -2,11 +2,11 @@
 
 namespace crawler\controllers;
 
-use crawler\models\keyword\Keyword;
-use crawler\models\parser\ParserFactory;
-use crawler\models\parser\ParserSettler;
-use crawler\models\parser\ParserProvisioner;
+use crawler\parser\ParserFactory;
+use crawler\parser\ParserSettler;
+use crawler\parser\ParserProvisioner;
 use crawler\models\category\CategorySource;
+use crawler\models\keyword\Keyword;
 use crawler\models\source\Source;
 use yii\web\Controller;
 use Yii;
@@ -141,6 +141,7 @@ class ParserController extends Controller
             {
                 $settler->saveCategories(json_decode($postParsed));
                 Yii::$app->cache->delete('categoryTreeId=' . $model->id);
+                
                 return Yii::$app->getResponse()->redirect(['parser/tree', 'id' => $id]);
             }
 
