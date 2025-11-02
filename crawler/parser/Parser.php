@@ -2,17 +2,17 @@
 
 namespace crawler\parser;
 
-use crawler\parser\enum\DetailsType;
-use crawler\parser\enum\PagerEnum;
-use crawler\parser\enum\ParserType;
-use crawler\parser\enum\SessionType;
-use crawler\parser\enum\XpathType;
 use crawler\parser\interface\ParserInterface;
-use crawler\parser\ParserSettler;
+use crawler\parser\enum\SessionType;
+use crawler\parser\enum\DetailsType;
+use crawler\parser\enum\ParserType;
+use crawler\parser\enum\XpathType;
+use crawler\parser\enum\PagerEnum;
 use crawler\models\history\History;
 
-/**x
- * Parser prepares the ground for & implements parsing works feeding a specific parser class related to the source.
+/**
+ * Parser is abstract class (with general functionality implemented) 
+ * which is extended by a specific source-parser class defined by factory (i.e. crawler\parser\impl\RdsParser)
  */
 abstract class Parser implements ParserInterface
 {
@@ -20,6 +20,10 @@ abstract class Parser implements ParserInterface
     public ParserStrategy $strategy;
     public ParserSettler $settler;
     public ParserDOM $dom;
+
+    abstract public function pageQuery(int $page, string $url): string;
+    abstract public function getWarningData($nodes): array;
+    abstract public function getProducts($nodes): array;
 
     public function __construct(ParserFactory $factory)
     {
@@ -29,8 +33,8 @@ abstract class Parser implements ParserInterface
         $this->dom = new ParserDOM($this->factory);
     }
 
-    // NOTE: Main loop. Catalog parsing happens here. 
-    // WARNING: Watch the base/break cases! Otherwise loops infinitely.
+    // NOTE: Main loop. Parsing happens here. 
+    // WARNING: Watch the base/break cases!
     public function run(): void
     {
         $time = microtime(true);
@@ -66,9 +70,6 @@ abstract class Parser implements ParserInterface
 
     /**
      * NOTE: parse() function determines the "type" of parsing needed, and further related processing, recieved from curl request.
-     * IMPORTANT: curlSession() needs to be called separately for every "type" condition, 
-     * since we need to recreate the "options" for the session, and if it would be called only once, 
-     * above all conditions, we would not be able to determine if "options" are legitimate or not.
      *
      * @param string $type
      * @param string $url
@@ -85,8 +86,7 @@ abstract class Parser implements ParserInterface
         if ($this->isTypeWarning($type)) 
             return $this->parseWarnings($url);
 
-        // if ($this->isConstantDefined('XPATH_SUPER')) 
-        //     return $this->parseSuper($type, $response);
+        // if ($this->isConstantDefined('XPATH_SUPER')) return $this->parseSuper($type, $response);
         return $this->parseByType($type, $url);
     }
     

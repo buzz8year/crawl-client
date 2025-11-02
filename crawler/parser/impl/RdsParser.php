@@ -32,21 +32,19 @@ class RdsParser extends Parser implements ParserSourceInterface
 
     public static $region;
 
-    public function pageQuery(int $page, string $url)
+    public function pageQuery(int $page, string $url): string
     {
         $pageQuery = strpos($url, '?') !== false 
             ? '&PAGEN_1='
             : '?PAGEN_1=';
 
-        $returnPage = $pageQuery . $page;
-
-        return $returnPage;
+        return $pageQuery . $page;
     }
 
     /**
      * @return
      */
-    public static function xpathSale(string $xpath)
+    public static function xpathSale(string $xpath): string
     {
         $extend = ' and .//div[contains(@class, \'new-item-list-discount\')]';
         $explode = rtrim($xpath, ']');
@@ -58,7 +56,7 @@ class RdsParser extends Parser implements ParserSourceInterface
     /**
      * @return array
      */
-    public function getWarningData($nodes)
+    public function getWarningData($nodes): array
     {
         return [];
     }
@@ -75,7 +73,7 @@ class RdsParser extends Parser implements ParserSourceInterface
      * Getting descriptions data from the object produced by getSuperData()
      * @return array
      */
-    public function getDescriptionData($object)
+    public function getDescriptionData($object): array
     {
         $data = [];
         foreach ($object as $node) 
@@ -92,7 +90,7 @@ class RdsParser extends Parser implements ParserSourceInterface
      * Getting attributes data from the object produced by getSuperData()
      * @return array
      */
-    public function getAttributeData($object)
+    public function getAttributeData($object): array
     {
         $data = [];
         foreach ($object as $node) 
@@ -109,7 +107,7 @@ class RdsParser extends Parser implements ParserSourceInterface
      * Getting image data from the object produced by getSuperData()
      * @return array
      */
-    public function getImageData($object)
+    public function getImageData($object): array
     {
         $data = [];
         foreach ($object as $node) 
@@ -127,7 +125,7 @@ class RdsParser extends Parser implements ParserSourceInterface
      * Extracting data from the product item's element of a category/search page
      * @return array
      */
-    public function getProducts($nodes)
+    public function getProducts($nodes): array
     {
         $data = [];
         foreach ($nodes as $node) 
@@ -185,7 +183,7 @@ class RdsParser extends Parser implements ParserSourceInterface
     /**
      * @return array
      */
-    public function parseCategories()
+    public function parseCategories(): array
     {
         $data = [];
         $response = $this->strategy->runClientSession($this->factory->model->domain . '/catalog/');

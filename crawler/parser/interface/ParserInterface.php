@@ -3,10 +3,13 @@
 namespace crawler\parser\interface;
 
 /**
- * ParserInterface defines mixed functionality setting (establishing) the action stage for the master plan.
+ * ParserInterface defines core extendable functionality for parsing process.
  */
 interface ParserInterface
 {
-    // public function createModel(int $sourceId);
-    // public function parse(string $type, string $url, string $page);
+    public function run();
+    public function parse(string $type, string $url, string $page);
+    public function parseCatalog(string $url, string $page);
+    public function parseWarnings(string $url);
+    public function parseDetails();
 }
