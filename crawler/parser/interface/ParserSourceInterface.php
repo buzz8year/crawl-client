@@ -7,30 +7,30 @@ namespace crawler\parser\interface;
  *
  * ---
  *
- * Основным смыслом классов частных парсеров (напр. AvitoParser) является работа с данными (извлечением данных из объектов),
- * полученных от базового класса (Parser), который он расширяет и реализовывает данный интерфейс, а также
- * хранением необходимых констант, которые хоть и могут быть реализованы посредством и заменены данными
- * из соотв. "модели" (часть которых уже реализована подобным образом, а части предстоит), - не упраздняются,
- * т.к. способствуют более комфортной разработке частных парсеров, когда все перед глазами.
+ * The primary purpose of specific parser classes (e.g., RdsParser) is to work with data (extracting data from objects)
+ * obtained from the base class (Parser), which it extends and implements this interface, as well as
+ * storing necessary constants, which, although they can be implemented and replaced with data
+ * from the corresponding "model" (some of which are already implemented in this way, and others are planned), 
+ * are not eliminated because they contribute to more convenient development of specific parsers when everything is at hand.
  *
- * На практике, сверх описанных, от случая к случаю, появляются лишь 1-2 метода для расширения метода parseCategories()
- * (в случаях когда целеообразна рекурсия и ее удобней реализовать с помощью дополнительного(-ых) метода(-ов)).
- * Подобное (и вне зависимости от цели), конечно, можно применить и к остальным методам, но пока к этому нет предпосылок.
+ * In practice, beyond the described functionality, only 1-2 methods occasionally appear to extend the parseCategories() method
+ * (in cases where recursion is appropriate and it is more convenient to implement it using an additional method(s)).
+ * Similar approaches (regardless of the purpose) can, of course, be applied to other methods, but there are currently no prerequisites for this.
  *
  */
 interface ParserSourceInterface
 {
     /**
-     * Выстраивает ссылку по которой будет просходить парсинг, на основе трех строковых переменных.
-     * Переменные с `ID` являются строковыми для возможности передачи пустых значений в GET запросах
-     * при их выборе в веб-интерфейсе.
+     * Builds the URL for parsing based on three string variables.
+     * The variables with `ID` are strings to allow passing empty values in GET requests
+     * when selected in the web interface.
      *
-     * Также здесь, при необходимости, можно определять статус аттрибута $pager, для указания применять ли
-     * "хождение" по номерам страниц (напр. ..?page=2) при парсинге каталога, т.к. не везде это нужно (бывает
-     * результаты отдаются всем скопом на одну страницу, а если об этом явно не сообщить, то цикл продожится
-     * в бесконечность).
+     * Additionally, if necessary, the status of the $pager attribute can be determined here to indicate whether
+     * to use "pagination" (e.g., ..?page=2) when parsing the catalog, as it is not always needed (sometimes
+     * results are provided all at once on a single page, and if this is not explicitly indicated, the loop will
+     * continue indefinitely).
      *
-     * Возвращаемый результат иcпользуется в ParserController actionTrial()
+     * The returned result is used in the ParserController actionTrial().
      *
      * ---
      *
@@ -44,8 +44,9 @@ interface ParserSourceInterface
     public function buildUrl(string $regionId, string $categorySourceId, string $keyword);
 
     /**
-     * Определяет правильную "строку" запроса на страницу (напр. ..?page=2) для данного ресурса.
-     * Возвращаемый результат иcпользуется в ParserController actionTrial()
+     * Determines the correct "string" for the page request (e.g., ..?page=2) for this resource.
+     * 
+     * The returned result is used in the ParserController actionTrial().
      *
      * ---
      *
@@ -57,13 +58,13 @@ interface ParserSourceInterface
     public function pageQuery(int $page, string $url);
 
     /**
-     * Извлекает и структурирует  данные из объекта-результата парсинга сообщений в веб-интерфейсе ресурса, 
-     * суть которых - выдача не соответствует запрашиваемой и показаны результаты из других разделов (напр., 
-     * так происходит на ozon.ru). Т.к. результаты парсинга будут писаться под категорию, 
-     * по которой мы делали запрос (а ресурс сообщает, что там нет искомых позиций),
-     * то, очевидно, такие результаты нам не нужны.
+     * Extracts and structures data from the object resulting from parsing messages in the web interface of the resource, 
+     * the essence of which is that the output does not match the requested and shows results from other sections (e.g., 
+     * this happens on ozon.ru). Since the parsing results will be written under the category for which we made the request 
+     * (and the resource reports that there are no desired items there), 
+     * it is obvious that such results are not needed.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -74,9 +75,9 @@ interface ParserSourceInterface
     public function getWarningData($nodes);
 
     /**
-     * Извлекает и структурирует данные (для передачи на запись в БД) из объекта-результата парсинга товаров на страницах каталога/поиска.
+     * Extracts and structures data (to be passed for saving to the database) from the object resulting from parsing products on catalog/search pages.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -86,12 +87,13 @@ interface ParserSourceInterface
     public function getProducts($nodes);
 
     /**
-     * Извлекает и структурирует данные (для передачи в методы описанные ниже) из объекта-результата парсинга объекта со всей
-     * возможной информацией по товару, если такой объеут существует (если есть, обычно лежит внутри js-скрипта). Далее, если
-     * такой объект искался и нашелся, то все методы описанные ниже будут извлекать соотв. инф. уже из этого объекта, а не из
-     * объекта DOMNodeList полученным от метода getNodes() классa Parser.
+     * Extracts and structures data (to be passed to the methods described below) from the object resulting from parsing 
+     * an object containing all possible product information, if such an object exists (if present, it is usually found 
+     * inside a JS script). Further, if such an object was searched for and found, all the methods described below will 
+     * extract the corresponding information from this object, rather than from the DOMNodeList object obtained from the 
+     * getNodes() method of the Parser class.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -100,10 +102,10 @@ interface ParserSourceInterface
     public function getSuperData($nodes);
 
     /**
-     * Извлекает и структурирует данные (для присваивания товару, по которому был парсинг, и последующей передачи на запись в БД)
-     * из объекта-результата парсинга описаний на странице товара.
+     * Extracts and structures data (to assign to the product being parsed and subsequently save to the database)
+     * from the object resulting from parsing descriptions on the product page.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -113,10 +115,10 @@ interface ParserSourceInterface
     public function getDescriptionData($object);
 
     /**
-     * Извлекает и структурирует данные (для присваивания товару, по которому был парсинг, и последующей передачи на запись в БД)
-     * из объекта-результата парсинга аттрибутов на странице товара.
+     * Extracts and structures data (to assign to the product being parsed and subsequently save to the database)
+     * from the object resulting from parsing attributes on the product page.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -126,10 +128,10 @@ interface ParserSourceInterface
     public function getAttributeData($object);
 
     /**
-     * Извлекает и структурирует данные (для присваивания товару, по которому был парсинг, и последующей передачи на запись в БД)
-     * из объекта-результата парсинга изображений на странице товара.
+     * Extracts and structures data (to assign to the product being parsed and subsequently save to the database)
+     * from the object resulting from parsing images on the product page.
      *
-     * Возвращаемый результат иcпользуется в классе Parser, метод parse()
+     * The returned result is used in the Parser class, parse() method.
      *
      * ---
      *
@@ -139,9 +141,9 @@ interface ParserSourceInterface
     public function getImageData($object);
 
     /**
-     * Реализовывает парсинг дерева категорий.
-     * При необходимости, расширяется доп. методами, которые здесь, ест-но, не описываются.
-     * Возвращаемый результат иcпользуется в классе ParserController, метод actionTree()
+     * Implements parsing of the category tree.
+     * If necessary, it can be extended with additional methods, which are naturally not described here.
+     * The returned result is used in the ParserController class, actionTree() method.
      *
      * ---
      *
